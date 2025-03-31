@@ -26,6 +26,11 @@ public class DomainService
         return await _repository.Search(r => r.DomainName == domainName);
     }
 
+    public async Task<IEnumerable<Domain>> GetDomains(int agent)
+    {
+        return await _repository.Search(r => r.Agent == agent);
+    }
+
     public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null)
     {
         if (issuer is not null)
@@ -109,7 +114,7 @@ public class DomainService
         var domains = await _repository.GetAll();
         foreach (var domain in domains)
         {
-            if (domain.Agent == 99)
+            if (domain.Agent != 0)
                 continue;
 
             var certificate = await _certificateDownloader.GetCertificateAsync(domain.DomainName, domain.Port);

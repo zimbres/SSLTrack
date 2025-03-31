@@ -18,6 +18,14 @@ public class DomainsController : ControllerBase
         return Ok(domains);
     }
 
+
+    [HttpGet("agents/{agent}")]
+    public async Task<ActionResult<IEnumerable<Domain>>> GetDomainsByAgentId(int agent)
+    {
+        var domains = await _domainService.GetDomains(agent);
+        return Ok(domains);
+    }
+
     [HttpGet("{domainName}")]
     public async Task<ActionResult<Domain>> GetDomain(string domainName)
     {
