@@ -41,6 +41,14 @@
                                 </MudChip>
                             </MudBadge>
                         }
+                        else if (context.Agent != 99 && context.Agent != 0)
+                        {
+                            <MudBadge Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Default" Overlap="true" Bordered="false">
+                                <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
+                                    <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
+                                </MudChip>
+                            </MudBadge>
+                        }
                         else
                         {
                             <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
