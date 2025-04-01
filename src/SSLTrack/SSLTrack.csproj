@@ -7,7 +7,7 @@
     <UserSecretsId>80c81872-d8db-4157-aa04-836685bb31ca</UserSecretsId>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>2.0.0.2</Version>
+    <Version>3.0.0.1</Version>
   </PropertyGroup>
 
   
@@ -38,6 +38,11 @@
   
   <ItemGroup>
     <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <ProjectReference Include="..\SSLTrack.ServiceDefaults\SSLTrack.ServiceDefaults.csproj" />
   </ItemGroup>
   
 </Project>

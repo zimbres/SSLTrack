@@ -42,7 +42,7 @@ jobs:
           tag=$(git describe --tags --abbrev=0)
           release_name="SSLTrack-$tag-${{ matrix.target }}"
 
-          dotnet publish SSLTrack/SSLTrack.csproj --framework net8.0 --runtime "${{ matrix.target }}" --no-self-contained -p:PublishSingleFile=true -c Release -o "$release_name"
+          dotnet publish src/SSLTrack/SSLTrack.csproj --framework net8.0 --runtime "${{ matrix.target }}" --no-self-contained -p:PublishSingleFile=true -c Release -o "$release_name"
 
           if [ "${{ matrix.target }}" == "win-x64" ]; then
             7z a -tzip "${release_name}.zip" "./${release_name}/*"

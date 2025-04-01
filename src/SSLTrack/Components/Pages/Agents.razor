@@ -29,12 +29,12 @@
                     <MudTd DataLabel="Id">@context.Id</MudTd>
                     <MudTd DataLabel="Delete">
                         <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error"
-                                       Disabled="@(context.Id == 0)"
+                                       Disabled="@(context.Id == 0 || context.Id == 1)"
                                        OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context.Name)) : null)" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
-                    <MudTablePager PageSizeOptions="new int[]{5, 50}" />
+                    <MudTablePager HidePageNumber="true" PageSizeOptions="new int[]{5, 10}" />
                 </PagerContent>
             </MudTable>
         }

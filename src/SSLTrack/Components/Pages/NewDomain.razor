@@ -31,8 +31,8 @@
                                 <MudTextField Label="Port" Class="mt-3" @bind-Value="model.Port" For="@(() => model.Port)" />
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudSelect Class="mt-3" @bind-Value="agent" Label="Agent">
-                                    @foreach (var agent in Agents)
+                                <MudSelect Class="mt-3" @bind-Value="agent" Label="Agent" @bind-SelectedValues="options">
+                                    @foreach (var agent in Agents.Where(a => ShouldIncludeAgent(a)))
                                     {
                                         <MudSelectItem T="Agent" Value="agent">@agent.Name</MudSelectItem>
                                     }
@@ -73,6 +73,8 @@
     private bool _exists = false;
     private bool _manual = false;
 
+    private IEnumerable<Agent> options { get; set; } = new HashSet<Agent> { new Agent() { Name = "Local" } };
+
     DomainForm model = new DomainForm();
 
     public class DomainForm
@@ -85,6 +87,13 @@
         public DateTime? ExpirationDate { get; set; } = DateTime.Today;
     }
 
+    private List<string> SuppressedAgents = new() { "Manual" };
+
+    private bool ShouldIncludeAgent(Agent agent)
+    {
+        return !SuppressedAgents.Contains(agent.Name);
+    }
+
     private async Task OnValidSubmit(EditContext context)
     {
         var domainExist = await DomainService.GetDomain(model.Domain);
@@ -94,7 +103,10 @@
             _exists = true;
             return;
         }
-        Console.WriteLine(model.ExpirationDate);
+        if (_manual)
+        {
+            agent.Id = 1;
+        }
         var domain = await DomainService.AddDomain(model.Domain, int.Parse(model.Port), model.Issuer, model.ExpirationDate, agent);
         MudDialog.Close(DialogResult.Ok(domain));
     }

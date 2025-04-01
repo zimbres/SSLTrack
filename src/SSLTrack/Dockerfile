@@ -4,8 +4,8 @@ EXPOSE 8080
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["SSLTrack/SSLTrack.csproj", "SSLTrack/"]
-RUN dotnet restore "./SSLTrack/SSLTrack.csproj"
+COPY ["src/SSLTrack/SSLTrack.csproj", "src/SSLTrack/"]
+RUN dotnet restore "./src/SSLTrack/SSLTrack.csproj"
 COPY . .
 
 ARG TARGETPLATFORM
@@ -17,7 +17,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
     RID=linux-arm ; \
     fi \
-    && dotnet publish "SSLTrack/SSLTrack.csproj" -c Release -o /app/publish -r $RID --self-contained false
+    && dotnet publish "src/SSLTrack/SSLTrack.csproj" -c Release -o /app/publish -r $RID --self-contained false
 
 FROM base AS final
 WORKDIR /app

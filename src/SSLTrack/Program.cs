@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHangfire(options =>
@@ -25,6 +27,8 @@ builder.Services.AddScoped<MailService>();
 builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddBlazoredLocalStorage();
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 if (!app.Environment.IsDevelopment())
 {

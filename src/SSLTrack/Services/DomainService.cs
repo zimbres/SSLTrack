@@ -33,7 +33,7 @@ public class DomainService
 
     public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null, Agent? agent = null)
     {
-        if (issuer is not null)
+        if (issuer is not null || agent.Id != 0)
         {
             var domain = new Domain
             {
@@ -43,7 +43,7 @@ public class DomainService
                 Issuer = issuer,
                 ExpiryDate = expirationDate ?? DateTime.Today,
                 LastChecked = expirationDate ?? DateTime.Today,
-                Agent = 99
+                Agent = agent.Id
             };
             var result = await _repository.Add(domain);
             if (result == 1)

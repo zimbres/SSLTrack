@@ -27,14 +27,15 @@
                     <MudTh>Port</MudTh>
                     <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.CertCN)">Certificate CN</MudTableSortLabel></MudTh>
                     <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.Issuer)">Issuer</MudTableSortLabel></MudTh>
-                    <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Domain, object>(x=>x.ExpiryDate)">Expire Date</MudTableSortLabel></MudTh>
-                    <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.LastChecked)">Last Checked</MudTableSortLabel></MudTh>
-                    <MudTh>Silenced</MudTh>
-                    <MudTh>Delete</MudTh>
+                    <MudTh Style="text-align: center;"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Domain, object>(x=>x.ExpiryDate)">Expire Date</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.LastChecked)">Last Checked</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center;">Agent</MudTh>
+                    <MudTh Style="text-align: center;" >Silenced</MudTh>
+                    <MudTh Style="text-align: center;">Delete</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Days">
-                        @if (context.Agent == 99)
+                        @if (context.Agent == 1)
                         {
                             <MudBadge Icon="@Icons.Material.Filled.PanTool" Color="Color.Transparent" Overlap="true" Bordered="false">
                                 <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
@@ -42,7 +43,7 @@
                                 </MudChip>
                             </MudBadge>
                         }
-                        else if (context.Agent != 99 && context.Agent != 0)
+                        else if (context.Agent != 1 && context.Agent != 0)
                         {
                             <MudBadge Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Transparent" Overlap="true" Bordered="false">
                                 <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
@@ -61,22 +62,25 @@
                     <MudTd DataLabel="Port">@(context.Agent == 99 ? "-" : context.Port)</MudTd>
                     <MudTd DataLabel="CertCN">@context.CertCN</MudTd>
                     <MudTd DataLabel="Issuer">@context.Issuer</MudTd>
-                    <MudTd DataLabel="ExpiryDate">@context.ExpiryDate</MudTd>
-                    <MudTd DataLabel="LastChecked">
+                    <MudTd Style="text-align: center;" DataLabel="ExpiryDate">@((MarkupString)$"{context.ExpiryDate:yyyy-MM-dd}<br />{context.ExpiryDate:HH:mm:ss}")</MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="LastChecked">
                         <MudText Style="font-size: 0.875rem;" Color="@(context.LastChecked < DateTime.Now.AddDays(-2) ? Color.Error : Color.Default)">
-                            @(context.Agent == 99 ? "-" : context.LastChecked)
+                            @((context.Agent == 2)
+                            ? (MarkupString)"-"
+                            : (MarkupString)$"{context.LastChecked:yyyy-MM-dd}<br />{context.LastChecked:HH:mm:ss}")
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Silenced">
+                    <MudTd Style="text-align: center;" DataLabel="Agent">@agents.Where(a => a.Id == @context.Agent).FirstOrDefault()</MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="Silenced">
                         <MudToggleIconButton Toggled="context.Silenced"
-                                             Icon="@Icons.Material.Filled.AlarmOn"
-                                             Color="@Color.Success"
-                                             ToggledIcon="@Icons.Material.Filled.AlarmOff"
-                                             ToggledColor="@Color.Error"
-                                             @onclick="() => ToggleSilence(context)" />
+                        Icon="@Icons.Material.Filled.AlarmOn"
+                        Color="@Color.Success"
+                        ToggledIcon="@Icons.Material.Filled.AlarmOff"
+                        ToggledColor="@Color.Error"
+                        @onclick="() => ToggleSilence(context)" />
 
                     </MudTd>
-                    <MudTd DataLabel="Delete">
+                    <MudTd Style="text-align: center;" DataLabel="Delete">
                         <MudIcon onclick="@(() => ConfirmDelete(diagOptions, context.DomainName))" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Style="cursor: pointer;" />
                     </MudTd>
                 </RowTemplate>
@@ -173,8 +177,8 @@
 
     protected double CalcExpiration(DateTime expireDate)
     {
-        var days = expireDate - DateTime.Now;
-        return Math.Floor(days.TotalDays);
+        var days = (expireDate.Date - DateTime.Now.Date).TotalDays;
+        return days;
     }
 
     protected Color ChipColor(double days)
