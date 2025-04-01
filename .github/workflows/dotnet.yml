@@ -95,7 +95,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: SSLTrack/Dockerfile
+          file: src/SSLTrack/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
