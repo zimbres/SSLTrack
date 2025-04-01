@@ -1,5 +1,6 @@
 ﻿@page "/domains"
 @inject DomainService DomainService;
+@inject AgentService AgentService;
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -9,7 +10,7 @@
 
 <MudCard>
     <MudCardContent>
-        <MudButton OnClick="@((e) => OpenDialog(diagOptions))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
+        <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
             Track a Domain
         </MudButton>
 
@@ -35,7 +36,7 @@
                     <MudTd DataLabel="Days">
                         @if (context.Agent == 99)
                         {
-                            <MudBadge Icon="@Icons.Material.Filled.PanTool" Color="Color.Default" Overlap="true" Bordered="false">
+                            <MudBadge Icon="@Icons.Material.Filled.PanTool" Color="Color.Transparent" Overlap="true" Bordered="false">
                                 <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
                                     <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
                                 </MudChip>
@@ -43,7 +44,7 @@
                         }
                         else if (context.Agent != 99 && context.Agent != 0)
                         {
-                            <MudBadge Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Default" Overlap="true" Bordered="false">
+                            <MudBadge Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Transparent" Overlap="true" Bordered="false">
                                 <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
                                     <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
                                 </MudChip>
@@ -88,12 +89,18 @@
 </MudCard>
 @code {
     private IEnumerable<Domain>? domains;
+    private IEnumerable<Agent>? agents;
 
     DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
 
-    private async Task OpenDialog(DialogOptions options)
+    private async Task OpenDialog(DialogOptions options, IEnumerable<Agent> agents)
     {
-        var dialogresult = DialogService.Show<NewDomain>("Track a Domain", options);
+        var parameters = new DialogParameters<NewDomain>
+        {
+            { x => x.Agents, agents }
+        };
+
+        var dialogresult = DialogService.Show<NewDomain>("Track a Domain", parameters, options);
         var result = await dialogresult.Result;
         var domain = (Domain)result.Data;
         if (!result.Canceled && domain is not null)
@@ -161,6 +168,7 @@
     protected override async Task OnInitializedAsync()
     {
         domains = await DomainService.GetDomains();
+        agents = await AgentService.GetAgents();
     }
 
     protected double CalcExpiration(DateTime expireDate)

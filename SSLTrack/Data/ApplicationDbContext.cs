@@ -10,6 +10,7 @@ public class ApplicationDbContext : DbContext, IDataProtectionKeyContext
 
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<Domain> Domains { get; set; }
+    public DbSet<Agent> Agents { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

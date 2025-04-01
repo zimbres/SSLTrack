@@ -25,7 +25,20 @@
                     else
                     {
                         <MudTextField Label="Domain" Class="mt-3" @bind-Value="model.Domain" For="@(() => model.Domain)" />
-                        <MudTextField Label="Port" Class="mt-3" @bind-Value="model.Port" For="@(() => model.Port)" />
+
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Label="Port" Class="mt-3" @bind-Value="model.Port" For="@(() => model.Port)" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect Class="mt-3" @bind-Value="agent" Label="Agent">
+                                    @foreach (var agent in Agents)
+                                    {
+                                        <MudSelectItem T="Agent" Value="agent">@agent.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
                     }
                 </MudCardContent>
                 <MudCardActions>
@@ -50,6 +63,11 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public List<Agent> Agents { get; set; }
+
+    private Agent agent { get; set; }
 
     private bool _processing = false;
     private bool _exists = false;
@@ -77,7 +95,7 @@
             return;
         }
         Console.WriteLine(model.ExpirationDate);
-        var domain = await DomainService.AddDomain(model.Domain, int.Parse(model.Port), model.Issuer, model.ExpirationDate);
+        var domain = await DomainService.AddDomain(model.Domain, int.Parse(model.Port), model.Issuer, model.ExpirationDate, agent);
         MudDialog.Close(DialogResult.Ok(domain));
     }
 

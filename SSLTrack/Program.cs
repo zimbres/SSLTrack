@@ -15,8 +15,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
 builder.Services.AddDbContextFactory<ApplicationDbContext>();
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();
+builder.Services.AddScoped<IAgentRepository, AgentRepository>();
 builder.Services.AddHostedService<HangfireService>();
 builder.Services.AddScoped<DomainService>();
+builder.Services.AddScoped<AgentService>();
 builder.Services.AddTransient(provider => new SmtpClient());
 
 builder.Services.AddScoped<MailService>();

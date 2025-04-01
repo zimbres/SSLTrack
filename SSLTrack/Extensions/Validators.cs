@@ -14,4 +14,17 @@ public static class Validators
         }
         return false;
     }
+
+    public static bool AgentExists(IEnumerable<Agent> agentDb, string agentName)
+    {
+        if (!agentDb.Any())
+        {
+            return false;
+        }
+        if (agentDb.First().Name == agentName)
+        {
+            return true;
+        }
+        return false;
+    }
 }

@@ -31,7 +31,7 @@ public class DomainService
         return await _repository.Search(r => r.Agent == agent);
     }
 
-    public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null)
+    public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null, Agent? agent = null)
     {
         if (issuer is not null)
         {
@@ -62,6 +62,7 @@ public class DomainService
                 Issuer = certificate.Issuer.FormateIssuer(),
                 ExpiryDate = certificate.NotAfter,
                 LastChecked = DateTime.Now,
+                Agent = agent == null ? 0 : agent.Id,
             };
             var result = await _repository.Add(domain);
             if (result == 1)

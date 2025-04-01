@@ -1,12 +1,43 @@
 ﻿@page "/agents"
+@inject AgentService AgentService;
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
 
 <MudText Typo="Typo.h5" GutterBottom="true">Agents</MudText>
 
-<MudCard Class="mt-4">
+<MudCard>
     <MudCardContent>
-        <MudText>
-            Remote Agents not implemented.
-        </MudText>
+        <MudButton Class="mb-2" OnClick="@((e) => OpenDialog(diagOptions))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.SettingsRemote" Color="Color.Info" Style="width: 200px; height: 60px;">
+            Add an Agent
+        </MudButton>
+
+        @if (agents == null)
+        {
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="agents" Dense="true" Hover="true" SortLabel="Sort By" Elevation="0">
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Name)">Agent</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Id)">Id</MudTableSortLabel></MudTh>
+                    <MudTh>Delete</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Agent">@context.Name</MudTd>
+                    <MudTd DataLabel="Id">@context.Id</MudTd>
+                    <MudTd DataLabel="Delete">
+                        <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error"
+                                       Disabled="@(context.Id == 0)"
+                                       OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context.Name)) : null)" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{5, 50}" />
+                </PagerContent>
+            </MudTable>
+        }
     </MudCardContent>
 </MudCard>
 
@@ -20,5 +51,62 @@
 </MudCard>
 
 @code {
+    private IEnumerable<Agent> agents;
 
+    DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
+    private async Task OpenDialog(DialogOptions options)
+    {
+        var dialogresult = DialogService.Show<NewAgent>("Add new Agent", options);
+        var result = await dialogresult.Result;
+        var agent = (Agent)result.Data;
+        if (!result.Canceled && agent is not null)
+        {
+            agents = await AgentService.GetAgents();
+            AddSnackbar($"Agent {agent.Name} added!", Severity.Success);
+            return;
+        }
+        if (!result.Canceled && agent is null)
+        {
+            AddSnackbar($"Failed to add agent, check data and try again!", Severity.Error);
+            return;
+        }
+    }
+
+    private async Task ConfirmDelete(DialogOptions options, string agentName)
+    {
+        var parameters = new DialogParameters<DelAgent>
+        {
+            { x => x.Agent, agentName }
+        };
+
+        var dialogresult = DialogService.Show<DelAgent>("Delete Agent", parameters, options);
+        var result = await dialogresult.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteAgent(agentName);
+            AddSnackbar($"Agent {agentName} deleted!", Severity.Success);
+        }
+    }
+
+    protected async Task DeleteAgent(string agentName)
+    {
+        await AgentService.DeleteAgent(agentName);
+        agents = await AgentService.GetAgents();
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        agents = await AgentService.GetAgents();
+    }
+
+
+    void AddSnackbar(string message, Severity severity)
+    {
+        Snackbar.Clear();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add(message, severity);
+    }
 }
