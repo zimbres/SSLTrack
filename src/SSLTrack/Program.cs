@@ -27,7 +27,14 @@ builder.Services.AddScoped<MailService>();
 builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddSingleton<LogService>();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("IgnoreSSL")
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    return new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (m, c, ch, e) => true
+    };
+});
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

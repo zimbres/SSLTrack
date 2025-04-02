@@ -1,5 +1,5 @@
 ﻿@page "/logs"
-@inject HttpClient HttpClient
+@inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavManager
 @inject LogService LogService
 
@@ -77,9 +77,10 @@
 
     protected async Task LoadData()
     {
+        var client = ClientFactory.CreateClient("IgnoreSSL");
         string baseUrl = NavManager.BaseUri;
         string apiUrl = $"{baseUrl}api/logs";
-        var result = await HttpClient.GetStringAsync(apiUrl);
+        var result = await client.GetStringAsync(apiUrl);
         logEntries = await LogService.LogEntry(result);
     }
 }
