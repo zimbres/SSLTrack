@@ -5,11 +5,12 @@ VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90627652-B661-4BDC-94C8-F44CE5F0295C}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\agent.yml = .github\workflows\agent.yml
 		SSLTrack\Dockerfile = SSLTrack\Dockerfile
-		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE = LICENSE
 		README.md = README.md
 		SECURITY.md = SECURITY.md
+		.github\workflows\server.yml = .github\workflows\server.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSLTrack", "src\SSLTrack\SSLTrack.csproj", "{17B22BD3-6833-BD86-87AD-B74AA1C0B392}"
@@ -19,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSLTrack.AppHost", "src\SSLTrack.AppHost\SSLTrack.AppHost.csproj", "{E5721F7A-934A-4AF9-AD7D-DBAB769B9D28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSLTrack.ServiceDefaults", "src\SSLTrack.ServiceDefaults\SSLTrack.ServiceDefaults.csproj", "{870B7881-97C6-3E68-7741-E1FE5D8FD6B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSLTrackAgent", "src\SSLTrackAgent\SSLTrackAgent.csproj", "{D6E1B4F4-DD8C-CC45-5719-04D9265F82F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +41,10 @@ Global
 		{870B7881-97C6-3E68-7741-E1FE5D8FD6B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{870B7881-97C6-3E68-7741-E1FE5D8FD6B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{870B7881-97C6-3E68-7741-E1FE5D8FD6B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6E1B4F4-DD8C-CC45-5719-04D9265F82F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6E1B4F4-DD8C-CC45-5719-04D9265F82F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6E1B4F4-DD8C-CC45-5719-04D9265F82F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6E1B4F4-DD8C-CC45-5719-04D9265F82F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

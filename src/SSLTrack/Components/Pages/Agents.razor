@@ -28,9 +28,18 @@
                     <MudTd DataLabel="Agent">@context.Name</MudTd>
                     <MudTd DataLabel="Id">@context.Id</MudTd>
                     <MudTd DataLabel="Delete">
-                        <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error"
-                                       Disabled="@(context.Id == 0 || context.Id == 1)"
-                                       OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context.Name)) : null)" />
+                        @if (context.Id == 0 || context.Id == 1)
+                        {
+                            <MudTooltip Text="System agents cannot be deleted" Arrow="true" Placement="Placement.Left">
+                                <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Disabled="true"
+                                               OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context)) : null)" />
+                            </MudTooltip>
+                        }
+                        else
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error"
+                                           OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context)) : null)" />
+                        }
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -46,7 +55,7 @@
         <MudText>
             Local Agent
         </MudText>
-        <iframe style="width:1124px;height:768px;padding-top:10px;" src="/hangfire" frameborder="0"></iframe>
+        <iframe style="width:1280px;height:1024px;padding-top:10px;" src="/hangfire" frameborder="0"></iframe>
     </MudCardContent>
 </MudCard>
 
@@ -57,36 +66,36 @@
 
     private async Task OpenDialog(DialogOptions options)
     {
-        var dialogresult = DialogService.Show<NewAgent>("Add new Agent", options);
-        var result = await dialogresult.Result;
-        var agent = (Agent)result.Data;
-        if (!result.Canceled && agent is not null)
+        var dialogReference = await DialogService.ShowAsync<NewAgent>("Add new Agent", options);
+        var dialogResult = await dialogReference.Result;
+        var agent = (Agent)dialogResult.Data;
+        if (!dialogResult.Canceled && agent is not null)
         {
             agents = await AgentService.GetAgents();
             AddSnackbar($"Agent {agent.Name} added!", Severity.Success);
             return;
         }
-        if (!result.Canceled && agent is null)
+        if (!dialogResult.Canceled && agent is null)
         {
             AddSnackbar($"Failed to add agent, check data and try again!", Severity.Error);
             return;
         }
     }
 
-    private async Task ConfirmDelete(DialogOptions options, string agentName)
+    private async Task ConfirmDelete(DialogOptions options, Agent agent)
     {
         var parameters = new DialogParameters<DelAgent>
         {
-            { x => x.Agent, agentName }
+            { x => x.Agent, agent }
         };
 
-        var dialogresult = DialogService.Show<DelAgent>("Delete Agent", parameters, options);
-        var result = await dialogresult.Result;
+        var dialogReference = await DialogService.ShowAsync<DelAgent>("Delete Agent", parameters, options);
+        var dialogResult = await dialogReference.Result;
 
-        if (!result.Canceled)
+        if (!dialogResult.Canceled)
         {
-            await DeleteAgent(agentName);
-            AddSnackbar($"Agent {agentName} deleted!", Severity.Success);
+            await DeleteAgent(agent.Name);
+            AddSnackbar($"Agent {agent.Name} deleted!", Severity.Success);
         }
     }
 

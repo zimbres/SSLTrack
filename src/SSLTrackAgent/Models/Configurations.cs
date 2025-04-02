@@ -1,0 +1,11 @@
+﻿namespace SSLTrackAgent.Models;
+
+internal class Configurations
+{
+    public int Delay { get; set; }
+    public string SSLTrackApiAddress { get; set; }
+    public string GetDomainsEndpoint { get; set; }
+    public string UpdateDomainEndpoint { get; set; }
+    public string LogEndpoint { get; set; }
+    public int AgentId { get; set; }
+}

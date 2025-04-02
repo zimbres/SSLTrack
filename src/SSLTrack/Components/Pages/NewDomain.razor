@@ -25,7 +25,6 @@
                     else
                     {
                         <MudTextField Label="Domain" Class="mt-3" @bind-Value="model.Domain" For="@(() => model.Domain)" />
-
                         <MudGrid Spacing="2">
                             <MudItem xs="12" sm="6">
                                 <MudTextField Label="Port" Class="mt-3" @bind-Value="model.Port" For="@(() => model.Port)" />
@@ -53,7 +52,7 @@
                             <MudText>Track</MudText>
                         }
                     </MudButton>
-                    <MudSwitch T="bool" @bind-Value="_manual" Label="No auto checks" Size="Size.Small" Class="ml-4" />
+                    <MudSwitch T="bool" @bind-Value="_manual" Label="No auto checks" Size="Size.Small" Class="ml-4" Color="Color.Warning" />
                     <MudButton Variant="Variant.Filled" Class="ml-auto" OnClick="Cancel">Cancel</MudButton>
                 </MudCardActions>
             </MudCard>
@@ -107,7 +106,7 @@
         {
             agent.Id = 1;
         }
-        var domain = await DomainService.AddDomain(model.Domain, int.Parse(model.Port), model.Issuer, model.ExpirationDate, agent);
+        var domain = await DomainService.AddDomain(model.Domain.Trim(), int.Parse(model.Port.Trim()), model.Issuer, model.ExpirationDate, agent);
         MudDialog.Close(DialogResult.Ok(domain));
     }
 

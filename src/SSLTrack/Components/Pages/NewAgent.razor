@@ -4,7 +4,7 @@
     <DialogContent>
         @if (_exists)
         {
-            <MudAlert Class="mb-4" Severity="Severity.Error">Domain already being tracked</MudAlert>
+            <MudAlert Class="mb-4" Severity="Severity.Error">Agent already exist</MudAlert>
         }
         <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
@@ -36,7 +36,6 @@
 
     private bool _processing = false;
     private bool _exists = false;
-    private bool _manual = false;
 
     AgentForm model = new AgentForm();
 

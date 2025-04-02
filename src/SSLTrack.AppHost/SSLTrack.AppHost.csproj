@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SSLTrackAgent\SSLTrackAgent.csproj" />
     <ProjectReference Include="..\SSLTrack\SSLTrack.csproj" />
   </ItemGroup>
 

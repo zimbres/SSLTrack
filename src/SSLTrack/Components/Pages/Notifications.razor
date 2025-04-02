@@ -47,6 +47,7 @@
     protected override async Task OnInitializedAsync()
     {
         mailProperties = Configuration.GetSection("MailProperties").Get<MailProperties>();
+        await Task.CompletedTask;
     }
 
     private void SendTestNotification()

@@ -25,7 +25,9 @@ builder.Services.AddTransient(provider => new SmtpClient());
 
 builder.Services.AddScoped<MailService>();
 builder.Services.AddSingleton<CertificateService>();
+builder.Services.AddSingleton<LogService>();
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddHttpClient();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

@@ -5,10 +5,12 @@
 public class DomainsController : ControllerBase
 {
     private readonly DomainService _domainService;
+    private readonly AgentService _agentService;
 
-    public DomainsController(DomainService domainService)
+    public DomainsController(DomainService domainService, AgentService agentService)
     {
         _domainService = domainService;
+        _agentService = agentService;
     }
 
     [HttpGet]
@@ -22,6 +24,11 @@ public class DomainsController : ControllerBase
     [HttpGet("agents/{agent}")]
     public async Task<ActionResult<IEnumerable<Domain>>> GetDomainsByAgentId(int agent)
     {
+        var agentDb = await _agentService.GetAgent(agent);
+        if (!agentDb.Any())
+        {
+            return NotFound();
+        }
         var domains = await _domainService.GetDomains(agent);
         return Ok(domains);
     }
@@ -73,9 +80,9 @@ public class DomainsController : ControllerBase
     }
 
     [HttpDelete("{domainName}")]
-    public async Task<IActionResult> DeleteDomain(string domainName)
+    public async Task<IActionResult> DeleteDomain(int domainId)
     {
-        var result = await _domainService.DeleteDomain(domainName);
+        var result = await _domainService.DeleteDomain(domainId);
         if (result is false)
         {
             return NotFound();

@@ -6,4 +6,6 @@ public class Configurations
     public bool AlertsEnabled { get; set; }
     public string? UpdateCron { get; set; }
     public string? AlertCron { get; set; }
+    public string? ClearLogsCron { get; set; }
+    public string ClearLogsEndpoint { get; set; }
 }

@@ -93,15 +93,25 @@ public class DomainService
         return true;
     }
 
+    public async Task<bool> DomainsWithAgent(int agentId)
+    {
+        var agent = await _repository.Search(r => r.Agent == agentId);
+        if (agent.Any())
+        {
+            return true;
+        }
+        return false;
+    }
+
     private async Task<bool> DomainExists(string domainName)
     {
         var domain = await _repository.Search(e => e.DomainName == domainName);
         return domain.Any();
     }
 
-    public async Task<bool> DeleteDomain(string domainName)
+    public async Task<bool> DeleteDomain(int domainId)
     {
-        var domain = await _repository.Search(r => r.DomainName == domainName);
+        var domain = await _repository.Search(r => r.Id == domainId);
         if (!domain.Any())
         {
             return false;

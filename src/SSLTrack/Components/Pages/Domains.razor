@@ -10,9 +10,14 @@
 
 <MudCard>
     <MudCardContent>
-        <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
-            Track a Domain
-        </MudButton>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
+                Track a Domain
+            </MudButton>
+            <MudTooltip Text="Refresh Data" Placement="Placement.Left">
+            <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
+            </MudTooltip>
+        </div>
 
         @if (domains == null)
         {
@@ -81,7 +86,7 @@
 
                     </MudTd>
                     <MudTd Style="text-align: center;" DataLabel="Delete">
-                        <MudIcon onclick="@(() => ConfirmDelete(diagOptions, context.DomainName))" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Style="cursor: pointer;" />
+                        <MudIcon onclick="@(() => ConfirmDelete(diagOptions, context))" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Style="cursor: pointer;" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -104,20 +109,26 @@
             { x => x.Agents, agents }
         };
 
-        var dialogresult = DialogService.Show<NewDomain>("Track a Domain", parameters, options);
-        var result = await dialogresult.Result;
-        var domain = (Domain)result.Data;
-        if (!result.Canceled && domain is not null)
+        var dialogReference = await DialogService.ShowAsync<NewDomain>("Track a Domain", parameters, options);
+        var dialogResult = await dialogReference.Result;
+        var domain = (Domain)dialogResult.Data;
+        if (!dialogResult.Canceled && domain is not null)
         {
             domains = await DomainService.GetDomains();
             AddSnackbar($"Domain {domain.DomainName} added!", Severity.Success);
             return;
         }
-        if (!result.Canceled && domain is null)
+        if (!dialogResult.Canceled && domain is null)
         {
             AddSnackbar($"Failed to add domain, check data and try again!", Severity.Error);
             return;
         }
+    }
+
+    private async Task Reload()
+    {
+        domains = await DomainService.GetDomains();
+        StateHasChanged();
     }
 
     void AddSnackbar(string message, Severity severity)
@@ -127,26 +138,26 @@
         Snackbar.Add(message, severity);
     }
 
-    private async Task ConfirmDelete(DialogOptions options, string domainName)
+    private async Task ConfirmDelete(DialogOptions options, Domain domain)
     {
         var parameters = new DialogParameters<DelDomain>
         {
-            { x => x.Domain, domainName }
+            { x => x.Domain, domain }
         };
 
-        var dialogresult = DialogService.Show<DelDomain>("Delete Domain", parameters, options);
-        var result = await dialogresult.Result;
+        var dialogReference = await DialogService.ShowAsync<DelDomain>("Delete Domain", parameters, options);
+        var dialogResult = await dialogReference.Result;
 
-        if (!result.Canceled)
+        if (!dialogResult.Canceled)
         {
-            await DeleteDomain(domainName);
-            AddSnackbar($"Domain {domainName} deleted!", Severity.Success);
+            await DeleteDomain(domain);
+            AddSnackbar($"Domain {domain.DomainName} deleted!", Severity.Success);
         }
     }
 
-    protected async Task DeleteDomain(string domainName)
+    protected async Task DeleteDomain(Domain domain)
     {
-        await DomainService.DeleteDomain(domainName);
+        await DomainService.DeleteDomain(domain.Id);
         domains = await DomainService.GetDomains();
         StateHasChanged();
     }

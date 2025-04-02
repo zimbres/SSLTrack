@@ -15,6 +15,6 @@ public class DomainMappings : IEntityTypeConfiguration<Domain>
         builder.Property(e => e.Agent);
         builder.Property(e => e.Silenced);
 
-        builder.HasIndex(e => e.DomainName).IsUnique();
+        builder.HasIndex(e => e.DomainName);
     }
 }
