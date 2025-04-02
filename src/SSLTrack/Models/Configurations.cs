@@ -7,5 +7,6 @@ public class Configurations
     public string? UpdateCron { get; set; }
     public string? AlertCron { get; set; }
     public string? ClearLogsCron { get; set; }
+    public string ApiBaseAddress { get; set; }
     public string ClearLogsEndpoint { get; set; }
 }

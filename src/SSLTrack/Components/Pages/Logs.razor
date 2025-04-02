@@ -1,6 +1,6 @@
 ﻿@page "/logs"
 @inject IHttpClientFactory ClientFactory
-@inject NavigationManager NavManager
+@inject IConfiguration Configuration
 @inject LogService LogService
 
 <MudText Typo="Typo.h5" GutterBottom="true">Agent Logs</MudText>
@@ -56,6 +56,7 @@
 
 @code {
     private IEnumerable<LogEntryDto> logEntries;
+    private Configurations configurations;
 
     private async Task Reload()
     {
@@ -72,14 +73,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        configurations = Configuration.GetSection("Configurations").Get<Configurations>();
         await LoadData();
     }
 
     protected async Task LoadData()
     {
         var client = ClientFactory.CreateClient("IgnoreSSL");
-        string baseUrl = NavManager.BaseUri;
-        string apiUrl = $"{baseUrl}api/logs";
+        string apiUrl = $"{configurations.ApiBaseAddress}/api/logs";
         var result = await client.GetStringAsync(apiUrl);
         logEntries = await LogService.LogEntry(result);
     }
