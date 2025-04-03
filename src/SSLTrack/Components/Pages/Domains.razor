@@ -70,7 +70,7 @@
                     <MudTd Style="text-align: center;" DataLabel="ExpiryDate">@((MarkupString)$"{context.ExpiryDate:yyyy-MM-dd}<br />{context.ExpiryDate:HH:mm:ss}")</MudTd>
                     <MudTd Style="text-align: center;" DataLabel="LastChecked">
                         <MudText Style="font-size: 0.875rem;" Color="@(context.LastChecked < DateTime.Now.AddDays(-2) ? Color.Error : Color.Default)">
-                            @((context.Agent == 2)
+                            @((context.Agent == 1)
                             ? (MarkupString)"-"
                             : (MarkupString)$"{context.LastChecked:yyyy-MM-dd}<br />{context.LastChecked:HH:mm:ss}")
                         </MudText>
