@@ -79,9 +79,8 @@
 
     protected async Task LoadData()
     {
-        var client = ClientFactory.CreateClient("IgnoreSSL");
-        string apiUrl = $"{configurations.ApiBaseAddress}/api/logs";
-        var result = await client.GetStringAsync(apiUrl);
+        var client = ClientFactory.CreateClient("Default");
+        var result = await client.GetStringAsync($"{configurations.ApiBaseAddress}{configurations.LogsEndpoint}");
         logEntries = await LogService.LogEntry(result);
     }
 }

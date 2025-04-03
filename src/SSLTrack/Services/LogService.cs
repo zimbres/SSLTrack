@@ -18,8 +18,8 @@ public class LogService
 
     public async Task ClearLogs()
     {
-        _httpClient = _httpClientFactory.CreateClient("IgnoreSSL");
-        var message = new HttpRequestMessage(HttpMethod.Post, _configurations.ClearLogsEndpoint);
+        _httpClient = _httpClientFactory.CreateClient("Default");
+        var message = new HttpRequestMessage(HttpMethod.Post, _configurations.ApiBaseAddress + _configurations.ClearLogsEndpoint);
 
         try
         {
