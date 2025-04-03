@@ -14,11 +14,11 @@ public class LogService
         _httpClientFactory = httpClientFactory;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
         _agentService = factory.CreateScope().ServiceProvider.GetRequiredService<AgentService>();
+        _httpClient = _httpClientFactory.CreateClient("Default");
     }
 
     public async Task ClearLogs()
     {
-        _httpClient = _httpClientFactory.CreateClient("Default");
         var message = new HttpRequestMessage(HttpMethod.Post, _configurations.ApiBaseAddress + _configurations.ClearLogsEndpoint);
 
         try
@@ -28,6 +28,26 @@ public class LogService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cleaning logs");
+        }
+    }
+
+    public async Task PushLog(string message, string domain)
+    {
+        var payload = new Log
+        {
+            Agent = 0,
+            Domain = domain,
+            DateTime = DateTime.Now,
+            Message = message,
+        };
+
+        try
+        {
+            await _httpClient.PostAsJsonAsync(_configurations.ApiBaseAddress + _configurations.LogsEndpoint, payload);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending logs");
         }
     }
 

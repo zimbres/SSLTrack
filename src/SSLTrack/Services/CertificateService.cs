@@ -4,10 +4,12 @@ public class CertificateService
 {
     private readonly ILogger<CertificateService> _logger;
     private readonly RemoteCertificateValidationCallback _remoteCertificate = (_, _, _, _) => true;
+    private readonly LogService _logService;
 
-    public CertificateService(ILogger<CertificateService> logger)
+    public CertificateService(ILogger<CertificateService> logger, LogService logService)
     {
         _logger = logger;
+        _logService = logService;
     }
 
     public async Task<X509Certificate2> GetCertificateAsync(string domain, int port = 443)
@@ -25,6 +27,7 @@ public class CertificateService
         }
         catch (Exception ex)
         {
+            await _logService.PushLog(ex.Message, domain);
             _logger.LogError("Error on connection to address {address} on port {port}. {ex}", domain, port, ex.Message);
         }
         return null!;
