@@ -23,6 +23,7 @@ global using SSLTrack.Services;
 global using System.Collections.Concurrent;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using System.Linq.Expressions;
+global using System.Net;
 global using System.Net.Security;
 global using System.Net.Sockets;
 global using System.Security.Cryptography.X509Certificates;

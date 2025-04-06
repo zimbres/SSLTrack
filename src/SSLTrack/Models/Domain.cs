@@ -11,4 +11,5 @@ public class Domain : Entity
     public string UserId { get; set; } = "User";
     public int Agent { get; set; }
     public bool Silenced { get; set; }
+    public bool PublicPrefix { get; set; }
 }

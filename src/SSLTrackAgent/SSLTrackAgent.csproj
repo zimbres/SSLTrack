@@ -9,7 +9,7 @@
     <DockerfileContext>..\..</DockerfileContext>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>3.0.0.7</Version>
+    <Version>3.0.0.8</Version>
   </PropertyGroup>
 
   <ItemGroup>

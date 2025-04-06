@@ -15,7 +15,7 @@
                 Track a Domain
             </MudButton>
             <MudTooltip Text="Refresh Data" Placement="Placement.Left">
-            <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
+                <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
             </MudTooltip>
         </div>
 
@@ -35,7 +35,7 @@
                     <MudTh Style="text-align: center;"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Domain, object>(x=>x.ExpiryDate)">Expire Date</MudTableSortLabel></MudTh>
                     <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.LastChecked)">Last Checked</MudTableSortLabel></MudTh>
                     <MudTh Style="text-align: center;">Agent</MudTh>
-                    <MudTh Style="text-align: center;" >Silenced</MudTh>
+                    <MudTh Style="text-align: center;">Silenced</MudTh>
                     <MudTh Style="text-align: center;">Delete</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -63,7 +63,18 @@
                             </MudChip>
                         }
                     </MudTd>
-                    <MudTd DataLabel="Domain">@context.DomainName</MudTd>
+                    <MudTd DataLabel="Domain">
+                        @if (@context.PublicPrefix)
+                        {
+                            <MudBadge Icon="@Icons.Material.Filled.Public" Color="Color.Transparent" Overlap="false" Bordered="false">
+                                @context.DomainName
+                            </MudBadge>
+                        }
+                        else
+                        {
+                            @context.DomainName
+                        }
+                    </MudTd>
                     <MudTd DataLabel="Port">@(context.Agent == 99 ? "-" : context.Port)</MudTd>
                     <MudTd DataLabel="CertCN">@context.CertCN</MudTd>
                     <MudTd DataLabel="Issuer">@context.Issuer</MudTd>
@@ -78,11 +89,11 @@
                     <MudTd Style="text-align: center;" DataLabel="Agent">@agents.Where(a => a.Id == @context.Agent).FirstOrDefault()</MudTd>
                     <MudTd Style="text-align: center;" DataLabel="Silenced">
                         <MudToggleIconButton Toggled="context.Silenced"
-                        Icon="@Icons.Material.Filled.AlarmOn"
-                        Color="@Color.Success"
-                        ToggledIcon="@Icons.Material.Filled.AlarmOff"
-                        ToggledColor="@Color.Error"
-                        @onclick="() => ToggleSilence(context)" />
+                                             Icon="@Icons.Material.Filled.AlarmOn"
+                                             Color="@Color.Success"
+                                             ToggledIcon="@Icons.Material.Filled.AlarmOff"
+                                             ToggledColor="@Color.Error"
+                                             @onclick="() => ToggleSilence(context)" />
 
                     </MudTd>
                     <MudTd Style="text-align: center;" DataLabel="Delete">

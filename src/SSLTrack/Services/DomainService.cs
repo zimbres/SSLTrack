@@ -6,14 +6,16 @@ public class DomainService
     private readonly MailService _mailService;
     private readonly Configurations _configurations;
     private readonly CertificateService _certificateDownloader;
+    private DnsService _dnsService;
 
     public DomainService(IDomainRepository repository, MailService mailService, IConfiguration configuration,
-        CertificateService certificateDownloader)
+        CertificateService certificateDownloader, DnsService dnsService)
     {
         _repository = repository;
         _mailService = mailService;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>()!;
         _certificateDownloader = certificateDownloader;
+        _dnsService = dnsService;
     }
 
     public async Task<IEnumerable<Domain>> GetDomains()
@@ -31,6 +33,17 @@ public class DomainService
         return await _repository.Search(r => r.Agent == agent);
     }
 
+    private async Task<bool> IsPublicPrefix(string domainName)
+    {
+        var ip = await _dnsService.GetIpAddress(domainName);
+        if (ip is not null)
+        {
+            var isPrivate = ip.FirstOrDefault().IsPrivateIp();
+            if (!isPrivate) return true;
+        }
+        return false;
+    }
+
     public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null, Agent? agent = null)
     {
         if (issuer is not null || agent.Id != 0)
@@ -43,7 +56,8 @@ public class DomainService
                 Issuer = issuer,
                 ExpiryDate = expirationDate ?? DateTime.Today,
                 LastChecked = expirationDate ?? DateTime.Today,
-                Agent = agent.Id
+                Agent = agent.Id,
+                PublicPrefix = await IsPublicPrefix(domainName),
             };
             var result = await _repository.Add(domain);
             if (result == 1)
@@ -63,6 +77,7 @@ public class DomainService
                 ExpiryDate = certificate.NotAfter,
                 LastChecked = DateTime.Now,
                 Agent = agent == null ? 0 : agent.Id,
+                PublicPrefix = await IsPublicPrefix(domainName),
             };
             var result = await _repository.Add(domain);
             if (result == 1)
@@ -142,7 +157,8 @@ public class DomainService
                     LastChecked = DateTime.Now,
                     UserId = domain.UserId,
                     Agent = domain.Agent,
-                    Silenced = domain.Silenced != false && Expiration.GetExpirationStatus(certificate.NotAfter, _configurations.DaysToExpiration)
+                    Silenced = domain.Silenced != false && Expiration.GetExpirationStatus(certificate.NotAfter, _configurations.DaysToExpiration),
+                    PublicPrefix = await IsPublicPrefix(domain.DomainName),
                 };
                 await _repository.Update(updated);
             }

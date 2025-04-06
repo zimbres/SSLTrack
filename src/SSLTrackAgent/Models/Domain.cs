@@ -12,4 +12,5 @@ public class Domain
     public int Agent { get; set; }
     public bool Silenced { get; set; }
     public int Id { get; set; }
+    public bool PublicPrefix { get; set; }
 }

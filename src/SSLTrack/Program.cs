@@ -25,6 +25,7 @@ builder.Services.AddTransient(provider => new SmtpClient());
 builder.Services.AddScoped<MailService>();
 builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddSingleton<LogService>();
+builder.Services.AddSingleton<DnsService>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddHttpClient("Default");
 builder.Services.AddHttpClient("IgnoreSSL")

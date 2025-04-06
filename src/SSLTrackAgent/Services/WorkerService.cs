@@ -5,12 +5,14 @@ public class WorkerService
     private readonly ILogger<AgentService> _logger;
     private readonly AgentService _agentService;
     private readonly CertificateService _certificateDownloader;
+    private readonly DnsService _dnsService;
 
-    public WorkerService(ILogger<AgentService> logger, AgentService agentService, CertificateService certificateDownloader)
+    public WorkerService(ILogger<AgentService> logger, AgentService agentService, CertificateService certificateDownloader, DnsService dnsService)
     {
         _logger = logger;
         _agentService = agentService;
         _certificateDownloader = certificateDownloader;
+        _dnsService = dnsService;
     }
 
     public async Task ProcessDomains()
@@ -36,10 +38,22 @@ public class WorkerService
                         UserId = domain.UserId,
                         Silenced = domain.Silenced,
                         Id = domain.Id,
+                        PublicPrefix = await IsPublicPrefix(domain.DomainName)
                     };
                     await _agentService.UpdateDomain(payload);
                 }
             }
         }
+    }
+
+    private async Task<bool> IsPublicPrefix(string domainName)
+    {
+        var ip = await _dnsService.GetIpAddress(domainName);
+        if (ip is not null)
+        {
+            var isPrivate = ip.FirstOrDefault().IsPrivateIp();
+            if (!isPrivate) return true;
+        }
+        return false;
     }
 }
