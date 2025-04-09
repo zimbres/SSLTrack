@@ -1,15 +1,8 @@
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
-builder.Services.AddHttpClient("Default");
-builder.Services.AddHttpClient("IgnoreSSL")
-.ConfigurePrimaryHttpMessageHandler(() =>
-{
-    return new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = (m, c, ch, e) => true
-    };
-});
+builder.Services.Configure<HttpClientConfiguration>(builder.Configuration.GetSection(nameof(HttpClientConfiguration)));
+builder.Services.AddConfiguredHttpClient();
 builder.Services.AddSingleton<AgentService>();
 builder.Services.AddSingleton<WorkerService>();
 builder.Services.AddSingleton<CertificateService>();

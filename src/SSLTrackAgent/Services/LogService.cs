@@ -17,7 +17,7 @@ public class LogService
 
     public async Task PushLog(string message, string domain)
     {
-        _httpClient = _httpClientFactory.CreateClient("IgnoreSSL");
+        _httpClient = _httpClientFactory.CreateClient("Default");
 
         var payload = new Log
         {

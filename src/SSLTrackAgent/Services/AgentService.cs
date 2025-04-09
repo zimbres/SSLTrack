@@ -15,6 +15,7 @@ public class AgentService
         _httpClientFactory = httpClientFactory;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
         _logService = logService;
+        _httpClient = _httpClientFactory.CreateClient("Default");
     }
 
     public async Task<List<Domain>> GetDomains()
@@ -24,7 +25,6 @@ public class AgentService
             PropertyNameCaseInsensitive = true
         };
 
-        _httpClient = _httpClientFactory.CreateClient("IgnoreSSL");
 
         try
         {
@@ -50,8 +50,6 @@ public class AgentService
 
     public async Task UpdateDomain(Domain payload)
     {
-        _httpClient = _httpClientFactory.CreateClient("IgnoreSSL");
-
         try
         {
             await _httpClient.PutAsJsonAsync($"{_configurations.SSLTrackApiAddress}{_configurations.UpdateDomainEndpoint}{payload.DomainName}", payload);
