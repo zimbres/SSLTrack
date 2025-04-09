@@ -57,7 +57,7 @@ public class DomainService
                 ExpiryDate = expirationDate ?? DateTime.Today,
                 LastChecked = expirationDate ?? DateTime.Today,
                 Agent = agent.Id,
-                PublicPrefix = await IsPublicPrefix(domainName),
+                PublicPrefix = false,
             };
             var result = await _repository.Add(domain);
             if (result == 1)

@@ -20,7 +20,8 @@
                                 <MudTextField Label="Issuer" Class="mt-3" @bind-Value="model.Issuer" For="@(() => model.Issuer)" />
                             </MudItem>
                         </MudGrid>
-                        <MudDatePicker Class="mt-2" Label="Expiration Date" @bind-Date="model.ExpirationDate" />
+                        <MudDatePicker tabindex="-1" Class="mt-2" Label="Expiration Date" @bind-Date="model.ExpirationDate" />
+                        <p>Selected date: @model.ExpirationDate</p>
                     }
                     else
                     {
