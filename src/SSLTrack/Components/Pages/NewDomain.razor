@@ -21,7 +21,6 @@
                             </MudItem>
                         </MudGrid>
                         <MudDatePicker tabindex="-1" Class="mt-2" Label="Expiration Date" @bind-Date="model.ExpirationDate" />
-                        <p>Selected date: @model.ExpirationDate</p>
                     }
                     else
                     {
@@ -98,7 +97,7 @@
     {
         var domainExist = await DomainService.GetDomain(model.Domain);
         _processing = false;
-        if (Validators.DomainExists(domainExist, model.Domain, int.Parse(model.Port)))
+        if (Validators.DomainExists(domainExist, model.Domain, int.Parse(model.Port), agent.Id))
         {
             _exists = true;
             return;
