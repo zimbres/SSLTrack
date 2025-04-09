@@ -7,7 +7,7 @@
     <UserSecretsId>80c81872-d8db-4157-aa04-836685bb31ca</UserSecretsId>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>3.0.0.9</Version>
+    <Version>3.0.1.0</Version>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
