@@ -7,5 +7,6 @@ internal class Configurations
     public string GetDomainsEndpoint { get; set; }
     public string UpdateDomainEndpoint { get; set; }
     public string LogEndpoint { get; set; }
+    public string PingEndpoint { get; set; }
     public int AgentId { get; set; }
 }

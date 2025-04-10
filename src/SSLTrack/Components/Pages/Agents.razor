@@ -1,6 +1,8 @@
 ﻿@page "/agents"
 @inject AgentService AgentService;
 @inject IDialogService DialogService
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
 @inject ISnackbar Snackbar
 
 
@@ -9,7 +11,7 @@
 <MudCard>
     <MudCardContent>
         <MudButton Class="mb-2" OnClick="@((e) => OpenDialog(diagOptions))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.SettingsRemote" Color="Color.Info" Style="width: 200px; height: 60px;">
-            Add an Agent
+            Add Agent
         </MudButton>
 
         @if (agents == null)
@@ -22,11 +24,26 @@
                 <HeaderContent>
                     <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Name)">Agent</MudTableSortLabel></MudTh>
                     <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Id)">Id</MudTableSortLabel></MudTh>
+                    <MudTh>Status</MudTh>
                     <MudTh>Delete</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Agent">@context.Name</MudTd>
                     <MudTd DataLabel="Id">@context.Id</MudTd>
+                    <MudTd DataLabel="Status">
+                        @if (context.Id == 0 || context.Id == 1)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbar4Bar" Size="Size.Small" Color="Color.Default" />
+                        }
+                        else if (GetAgentStatus(context.Id))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbar4Bar" Size="Size.Small" Color="Color.Success" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiOff" Size="Size.Small" Color="Color.Error" />
+                        }
+                    </MudTd>
                     <MudTd DataLabel="Delete">
                         @if (context.Id == 0 || context.Id == 1)
                         {
@@ -42,9 +59,6 @@
                         }
                     </MudTd>
                 </RowTemplate>
-                <PagerContent>
-                    <MudTablePager HidePageNumber="true" PageSizeOptions="new int[]{5, 10}" />
-                </PagerContent>
             </MudTable>
         }
     </MudCardContent>
@@ -61,8 +75,11 @@
 
 @code {
     private IEnumerable<Agent> agents;
+    private Configurations configurations;
 
     DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
+    Dictionary<int, DateTime> status = new();
 
     private async Task OpenDialog(DialogOptions options)
     {
@@ -108,9 +125,27 @@
 
     protected override async Task OnInitializedAsync()
     {
+        configurations = Configuration.GetSection("Configurations").Get<Configurations>();
         agents = await AgentService.GetAgents();
+        status = await GetAgentsStatus();
     }
 
+    protected async Task<Dictionary<int, DateTime>> GetAgentsStatus()
+    {
+        var client = ClientFactory.CreateClient("Default");
+        var result = await client.GetFromJsonAsync<Dictionary<int, DateTime>>($"{configurations.ApiBaseAddress}{configurations.AgentsStatusEndpoint}");
+        return result;
+    }
+
+    protected bool GetAgentStatus(int id)
+    {
+        if (status.TryGetValue(id, out var dateTime))
+        {
+            if (dateTime >= DateTime.Now.AddMinutes(-2))
+                return true;
+        }
+        return false;
+    }
 
     void AddSnackbar(string message, Severity severity)
     {
