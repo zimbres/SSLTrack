@@ -14,8 +14,8 @@ public class DnsService
     {
         try
         {
-            var addresses = Dns.GetHostAddresses(domainName);
-            return await Task.FromResult(addresses);
+            var addresses = Dns.GetHostAddressesAsync(domainName);
+            return await addresses;
         }
         catch (Exception ex)
         {
