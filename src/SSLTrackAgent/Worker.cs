@@ -38,7 +38,6 @@ public class Worker : BackgroundService
                 catch (Exception ex)
                 {
                     _logger.LogError("Heartbeat failed: {message}", ex.Message);
-                    throw;
                 }
 
                 lastHeartbeatTime = now;
