@@ -193,7 +193,7 @@ public class DomainService
                 continue;
             }
 
-            _mailService.SendMail();
+            await _mailService.SendMailAsync();
         }
     }
 }

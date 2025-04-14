@@ -21,7 +21,6 @@ builder.Services.AddScoped<IAgentRepository, AgentRepository>();
 builder.Services.AddHostedService<HangfireService>();
 builder.Services.AddScoped<DomainService>();
 builder.Services.AddScoped<AgentService>();
-builder.Services.AddTransient(provider => new SmtpClient());
 builder.Services.AddScoped<MailService>();
 builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddSingleton<LogService>();

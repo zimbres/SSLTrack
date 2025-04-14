@@ -3,20 +3,15 @@
 public class MailService : MailProperties
 {
     private readonly ILogger<MailService> _logger;
-    private readonly RetryPolicy _retryPolicy;
-    private readonly SmtpClient _smtpClient;
+    private readonly AsyncRetryPolicy _retryPolicy = Policy.Handle<Exception>()
+            .WaitAndRetryAsync(2, retryCount => TimeSpan.FromSeconds(Math.Pow(2, retryCount)));
 
-    public MailService(ILogger<MailService> logger, IConfiguration configuration, SmtpClient smtpClient)
+    public MailService(ILogger<MailService> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _smtpClient = smtpClient;
-
-        _retryPolicy = Policy.Handle<Exception>()
-            .WaitAndRetry(3, retryCount => TimeSpan.FromSeconds(Math.Pow(2, retryCount)));
 
         var mailProperties = configuration.GetSection("MailProperties").Get<MailProperties>()
                              ?? throw new ArgumentNullException(nameof(configuration), "MailProperties configuration is missing.");
-
 
         MailFrom = mailProperties.MailFrom;
         MailTo = mailProperties.MailTo;
@@ -33,7 +28,7 @@ public class MailService : MailProperties
         EnableSsl = mailProperties.EnableSsl;
     }
 
-    public void SendMail()
+    public async Task SendMailAsync()
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(Name, MailFrom));
@@ -53,14 +48,18 @@ public class MailService : MailProperties
             ? new TextPart("html") { Text = Body }
             : new TextPart("plain") { Text = Body };
 
+        using var client = new SmtpClient();
         try
         {
-            _smtpClient.Connect(SmtpHost, Port, EnableSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None);
-            if (!string.IsNullOrWhiteSpace(Username))
+            await _retryPolicy.ExecuteAsync(async () =>
             {
-                _smtpClient.Authenticate(Username, Password);
-            }
-            _retryPolicy.Execute(() => _smtpClient.Send(message));
+                await client.ConnectAsync(SmtpHost, Port, EnableSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None);
+                if (!string.IsNullOrWhiteSpace(Username))
+                {
+                    await client.AuthenticateAsync(Username, Password);
+                }
+                await client.SendAsync(message);
+            });
         }
         catch (Exception ex)
         {
@@ -69,7 +68,7 @@ public class MailService : MailProperties
         }
         finally
         {
-            _smtpClient.Disconnect(true);
+            await client.DisconnectAsync(true);
         }
     }
 }
