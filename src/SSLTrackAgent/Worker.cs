@@ -7,18 +7,16 @@ public class Worker : BackgroundService
     private readonly WorkerService _workerService;
     private readonly Configurations _configurations;
     private readonly HttpClient _httpClient;
+    private readonly AuthService _authService;
 
-    public Worker(ILogger<Worker> logger, IConfiguration configuration, WorkerService workerService, IHttpClientFactory httpClientFactory)
+    public Worker(ILogger<Worker> logger, IConfiguration configuration, WorkerService workerService, IHttpClientFactory httpClientFactory, AuthService authService)
     {
         _logger = logger;
         _workerService = workerService;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
         _httpClientFactory = httpClientFactory;
         _httpClient = _httpClientFactory.CreateClient("Default");
-        if (!string.IsNullOrEmpty(_configurations.Username) && !string.IsNullOrEmpty(_configurations.Password))
-        {
-            _httpClient.ApplyBasicAuth(_configurations.Username, _configurations.Password);
-        }
+        _authService = authService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,6 +34,7 @@ public class Worker : BackgroundService
             {
                 try
                 {
+                    await _httpClient.ApplyAuthAsync(_authService);
                     await _httpClient.SendAsync(new HttpRequestMessage(
                         HttpMethod.Head, $"{_configurations.SSLTrackApiAddress}{_configurations.PingEndpoint}/{_configurations.AgentId}"), stoppingToken);
                 }

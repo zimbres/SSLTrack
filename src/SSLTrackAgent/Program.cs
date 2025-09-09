@@ -8,6 +8,7 @@ builder.Services.AddSingleton<WorkerService>();
 builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddSingleton<LogService>();
 builder.Services.AddSingleton<DnsService>();
+builder.Services.AddSingleton<AuthService>();
 builder.Services.AddHostedService<Worker>().Configure<HostOptions>(options =>
 {
     options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;

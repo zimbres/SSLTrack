@@ -6,17 +6,15 @@ public class LogService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Configurations _configurations;
     private HttpClient _httpClient;
+    private readonly AuthService _authService;
 
-    public LogService(ILogger<LogService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public LogService(ILogger<LogService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, AuthService authService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
-        if (!string.IsNullOrEmpty(_configurations.Username) && !string.IsNullOrEmpty(_configurations.Password))
-        {
-            _httpClient.ApplyBasicAuth(_configurations.Username, _configurations.Password);
-        }
+        _authService = authService;
     }
 
     public async Task PushLog(string message, string domain)
@@ -33,6 +31,7 @@ public class LogService
 
         try
         {
+            await _httpClient.ApplyAuthAsync(_authService);
             await _httpClient.PostAsJsonAsync($"{_configurations.SSLTrackApiAddress}{_configurations.LogEndpoint}", payload);
         }
         catch (Exception ex)

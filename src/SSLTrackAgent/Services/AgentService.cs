@@ -7,8 +7,9 @@ public class AgentService
     private readonly Configurations _configurations;
     private readonly LogService _logService;
     private HttpClient _httpClient;
+    private readonly AuthService _authService;
 
-    public AgentService(ILogger<AgentService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, LogService logService)
+    public AgentService(ILogger<AgentService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, LogService logService, AuthService authService)
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -16,10 +17,7 @@ public class AgentService
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
         _logService = logService;
         _httpClient = _httpClientFactory.CreateClient("Default");
-        if (!string.IsNullOrEmpty(_configurations.Username) && !string.IsNullOrEmpty(_configurations.Password))
-        {
-            _httpClient.ApplyBasicAuth(_configurations.Username, _configurations.Password);
-        }
+        _authService = authService;
     }
 
     public async Task<List<Domain>> GetDomains()
@@ -32,6 +30,7 @@ public class AgentService
 
         try
         {
+            await _httpClient.ApplyAuthAsync(_authService);
             var results = await _httpClient.GetFromJsonAsync<List<Domain>>($"{_configurations.SSLTrackApiAddress}{_configurations.GetDomainsEndpoint}{_configurations.AgentId}", options);
             return results;
         }
@@ -56,6 +55,7 @@ public class AgentService
     {
         try
         {
+            await _httpClient.ApplyAuthAsync(_authService);
             await _httpClient.PutAsJsonAsync($"{_configurations.SSLTrackApiAddress}{_configurations.UpdateDomainEndpoint}{payload.DomainName}", payload);
         }
         catch (Exception ex)
