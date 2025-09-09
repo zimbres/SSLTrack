@@ -13,6 +13,10 @@ public class LogService
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
+        if (!string.IsNullOrEmpty(_configurations.Username) && !string.IsNullOrEmpty(_configurations.Password))
+        {
+            _httpClient.ApplyBasicAuth(_configurations.Username, _configurations.Password);
+        }
     }
 
     public async Task PushLog(string message, string domain)
