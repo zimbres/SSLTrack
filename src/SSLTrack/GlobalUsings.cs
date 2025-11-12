@@ -8,7 +8,7 @@ global using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
-global using Microsoft.OpenApi.Models;
+global using Microsoft.OpenApi;
 global using MimeKit;
 global using MudBlazor.Services;
 global using Polly;

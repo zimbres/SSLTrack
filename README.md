@@ -24,6 +24,6 @@ This can be avoided either by configuring a monitoring tool to call the health A
 
 ---
 
-A pre-compiled package is available for Windows and Linux. It requires ASP.NET Core Runtime 8.x.
+A pre-compiled package is available for Windows and Linux. It requires ASP.NET Core Runtime 10.x.
 
-[Download .NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+[Download .NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
