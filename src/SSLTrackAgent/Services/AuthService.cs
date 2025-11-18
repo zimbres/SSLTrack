@@ -15,7 +15,7 @@ public class AuthService
         _logger = logger;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>();
         _httpClientFactory = httpClientFactory;
-        _httpClient = _httpClientFactory.CreateClient("IgnoreSSL");
+        _httpClient = _httpClientFactory.CreateClient("Default");
     }
 
     public async Task<AuthenticationHeaderValue> GetAuthHeaderAsync()
