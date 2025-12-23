@@ -1,0 +1,42 @@
+﻿@inject DomainService DomainService
+
+<MudDialog>
+    <DialogContent>
+        @if (_exists)
+        {
+            <MudAlert Class="mb-4" Severity="Severity.Error">Agent has domains associated with it and cannot be deleted</MudAlert>
+        }
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText>Are you sure you want to delete <strong>@Agent</strong>?</MudText>
+            </MudCardContent>
+        </MudCard>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color=Color.Error Variant="Variant.Filled" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    private bool _exists = false;
+
+    [Parameter]
+    public Agent Agent { get; set; }
+
+    private async Task Submit()
+    {
+        var agentExist = await DomainService.DomainsWithAgent(Agent.Id);
+        if (agentExist)
+        {
+            _exists = true;
+            return;
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

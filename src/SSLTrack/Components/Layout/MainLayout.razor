@@ -1,0 +1,63 @@
+﻿@inherits LayoutComponentBase
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" @rendermode="InteractiveServer" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<PageTitle>SSLTrack - SSL Certificates Monitoring</PageTitle>
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudIcon Icon="@Icons.Material.Outlined.Lock" />
+        <MudText Typo="Typo.h5" Class="ml-3">SSLTrack</MudText>
+        <MudSpacer />
+        <MudSwitch T="bool" Label="Light/Dark" Class="ma-4" Color="Color.Primary" Value="@_isDarkMode" ValueChanged="OnThemeChanged" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent Class="mt-16 pa-4 mb-4">
+        @Body
+    </MudMainContent>
+    <MudAppBar Elevation="1" Bottom="true" Dense="true" Fixed="true">
+        <MudGrid Justify="Justify.Center">
+            <MudItem>
+                <a href="https://github.com/zimbres/SSLTrack" target="_blank">
+                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" Title="GitHub" />
+                </a>
+            </MudItem>
+        </MudGrid>
+    </MudAppBar>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private MudTheme _theme = new();
+    private bool _isDarkMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (string.IsNullOrEmpty(await localStorage.GetItemAsync<string>("isDarkMode")))
+            {
+                await localStorage.SetItemAsync("isDarkMode", _isDarkMode);
+            }
+            _isDarkMode = bool.Parse(await localStorage.GetItemAsync<string>("isDarkMode"));
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnThemeChanged(bool value)
+    {
+        _isDarkMode = value;
+        await localStorage.SetItemAsync("isDarkMode", value);
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

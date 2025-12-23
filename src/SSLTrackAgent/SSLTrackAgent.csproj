@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-SSLTrackAgent-d7b2e914-619c-4243-ac2f-98dac98949c9</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
+    <Version>10.0.0.2</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SSLTrack.ServiceDefaults\SSLTrack.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

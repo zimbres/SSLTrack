@@ -1,0 +1,25 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText>Are you sure you want to delete <strong>@Domain.DomainName</strong>?</MudText>
+            </MudCardContent>
+        </MudCard>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color=Color.Error Variant="Variant.Filled" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public Domain Domain { get; set; }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,219 @@
+﻿@page "/domains"
+@inject DomainService DomainService;
+@inject AgentService AgentService;
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+
+<MudText Typo="Typo.h3" GutterBottom="true">Tracked Domains</MudText>
+<MudText Typo="Typo.h5" GutterBottom="true">Certificates currently being monitored</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
+                Track a Domain
+            </MudButton>
+            <MudTooltip Text="Refresh Data" Placement="Placement.Left">
+                <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
+            </MudTooltip>
+        </div>
+
+        @if (domains == null)
+        {
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="domains" Hover="true" SortLabel="Sort By" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Days Left</MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.DomainName)">Domain</MudTableSortLabel></MudTh>
+                    <MudTh>Port</MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.CertCN)">Certificate CN</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.Issuer)">Issuer</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center;"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Domain, object>(x=>x.ExpiryDate)">Expire Date</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center;"><MudTableSortLabel SortBy="new Func<Domain, object>(x=>x.LastChecked)">Last Checked</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center;">Agent</MudTh>
+                    <MudTh Style="text-align: center;">Silenced</MudTh>
+                    <MudTh Style="text-align: center;">Delete</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Days">
+                        @if (context.Agent == 1)
+                        {
+                            <MudBadge Icon="@Icons.Material.Filled.PanTool" Color="Color.Transparent" Overlap="true" Bordered="false">
+                                <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
+                                    <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
+                                </MudChip>
+                            </MudBadge>
+                        }
+                        else if (context.Agent != 1 && context.Agent != 0)
+                        {
+                            <MudBadge Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Transparent" Overlap="true" Bordered="false">
+                                <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
+                                    <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
+                                </MudChip>
+                            </MudBadge>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
+                                <div style="text-align:center; min-width:50px; max-width: 50px"> @CalcExpiration(context.ExpiryDate)</div>
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Domain">
+                        @if (@context.PublicPrefix)
+                        {
+                            <MudBadge Icon="@Icons.Material.Filled.Public" Color="Color.Transparent" Overlap="false" Bordered="false">
+                                @context.DomainName
+                            </MudBadge>
+                        }
+                        else
+                        {
+                            @context.DomainName
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Port">@(context.Agent == 99 ? "-" : context.Port)</MudTd>
+                    <MudTd DataLabel="CertCN">@context.CertCN</MudTd>
+                    <MudTd DataLabel="Issuer">@context.Issuer</MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="ExpiryDate">@((MarkupString)$"{context.ExpiryDate:yyyy-MM-dd}<br />{context.ExpiryDate:HH:mm:ss}")</MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="LastChecked">
+                        <MudText Style="font-size: 0.875rem;" Color="@(context.LastChecked < DateTime.Now.AddDays(-2) ? Color.Error : Color.Default)">
+                            @((context.Agent == 1)
+                            ? (MarkupString)"-"
+                            : (MarkupString)$"{context.LastChecked:yyyy-MM-dd}<br />{context.LastChecked:HH:mm:ss}")
+                        </MudText>
+                    </MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="Agent">@agents.Where(a => a.Id == @context.Agent).FirstOrDefault()</MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="Silenced">
+                        <MudToggleIconButton Toggled="context.Silenced"
+                                             Icon="@Icons.Material.Filled.AlarmOn"
+                                             Color="@Color.Success"
+                                             ToggledIcon="@Icons.Material.Filled.AlarmOff"
+                                             ToggledColor="@Color.Error"
+                                             @onclick="() => ToggleSilence(context)" />
+
+                    </MudTd>
+                    <MudTd Style="text-align: center;" DataLabel="Delete">
+                        <MudIcon onclick="@(() => ConfirmDelete(diagOptions, context))" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Style="cursor: pointer;" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{10, 50, 100}" />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+@code {
+    private IEnumerable<Domain>? domains;
+    private IEnumerable<Agent>? agents;
+
+    DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
+    private async Task OpenDialog(DialogOptions options, IEnumerable<Agent> agents)
+    {
+        var parameters = new DialogParameters<NewDomain>
+        {
+            { x => x.Agents, agents }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<NewDomain>("Track a Domain", parameters, options);
+        var dialogResult = await dialogReference.Result;
+        var domain = (Domain)dialogResult.Data;
+        if (!dialogResult.Canceled && domain is not null)
+        {
+            domains = await DomainService.GetDomains();
+            AddSnackbar($"Domain {domain.DomainName} added!", Severity.Success);
+            return;
+        }
+        if (!dialogResult.Canceled && domain is null)
+        {
+            AddSnackbar($"Failed to add domain, check data and try again!", Severity.Error);
+            return;
+        }
+    }
+
+    private async Task Reload()
+    {
+        domains = await DomainService.GetDomains();
+        StateHasChanged();
+    }
+
+    void AddSnackbar(string message, Severity severity)
+    {
+        Snackbar.Clear();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add(message, severity);
+    }
+
+    private async Task ConfirmDelete(DialogOptions options, Domain domain)
+    {
+        var parameters = new DialogParameters<DelDomain>
+        {
+            { x => x.Domain, domain }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<DelDomain>("Delete Domain", parameters, options);
+        var dialogResult = await dialogReference.Result;
+
+        if (!dialogResult.Canceled)
+        {
+            await DeleteDomain(domain);
+            AddSnackbar($"Domain {domain.DomainName} deleted!", Severity.Success);
+        }
+    }
+
+    protected async Task DeleteDomain(Domain domain)
+    {
+        await DomainService.DeleteDomain(domain.Id);
+        domains = await DomainService.GetDomains();
+        StateHasChanged();
+    }
+
+    private async Task ToggleSilence(Domain context)
+    {
+        bool newStatus = !context.Silenced;
+
+        context.Silenced = newStatus;
+        bool success = await DomainService.UpdateDomain(context.DomainName, context);
+
+        if (success)
+        {
+            domains = await DomainService.GetDomains();
+            StateHasChanged();
+        }
+        else
+        {
+            context.Silenced = !newStatus;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        domains = await DomainService.GetDomains();
+        agents = await AgentService.GetAgents();
+    }
+
+    protected double CalcExpiration(DateTime expireDate)
+    {
+        var days = (expireDate.Date - DateTime.Now.Date).TotalDays;
+        return days;
+    }
+
+    protected Color ChipColor(double days)
+    {
+        if (days < 1)
+        {
+            return Color.Error;
+        }
+
+        if (days < 30)
+        {
+            return Color.Warning;
+        }
+        return Color.Success;
+    }
+}

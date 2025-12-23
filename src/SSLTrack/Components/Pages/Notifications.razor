@@ -1,0 +1,87 @@
+﻿@page "/notifications"
+@inject MailService MailService
+@inject ISnackbar Snackbar
+@inject IConfiguration Configuration
+
+<MudText Typo="Typo.h5" GutterBottom="true">Notifications</MudText>
+<MudCard>
+    <MudCardContent>
+        <MudTooltip Color="Color.Primary" Text="This configuration has to be done on server appsettings.json">
+            <MudGrid>
+                <MudItem xs="6"><MudText><strong>Mail from:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.MailFrom</MudText></MudItem>
+
+                <MudItem xs="6"><MudText><strong>Mail to:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.MailTo</MudText></MudItem>
+
+                <MudItem xs="6"><MudText><strong>Mail Server:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.SmtpHost</MudText></MudItem>
+
+                <MudItem xs="6"><MudText><strong>Mail Port:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.Port</MudText></MudItem>
+
+                <MudItem xs="6"><MudText><strong>Use SSL:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.EnableSsl</MudText></MudItem>
+
+                <MudItem xs="6"><MudText><strong>Username:</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText>@mailProperties.Username</MudText></MudItem>
+            </MudGrid>
+        </MudTooltip>
+    </MudCardContent>
+</MudCard>
+
+<MudDivider />
+
+<MudCard>
+    <MudCardContent>
+        <MudButton Disabled="@_processing" OnClick="@SendTestNotification" Variant="Variant.Filled" Color="Color.Info" Style="width: 200px; height: 60px;">
+            @if (_processing)
+            {
+                <MudText Class="mr-5">Processing</MudText>
+                <MudProgressCircular Class="ms-2" Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <MudText>Send Test Notification</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.MailOutline" Class="ms-2" />
+            }
+        </MudButton>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private string NotificationMessage { get; set; } = string.Empty;
+    private MailProperties mailProperties;
+    private bool _processing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mailProperties = Configuration.GetSection("MailProperties").Get<MailProperties>();
+        await Task.CompletedTask;
+    }
+
+    private async Task SendTestNotification()
+    {
+        try
+        {
+            _processing = true;
+            MailService.Subject = "Notification test";
+            MailService.Body = "This is a test email from SSLTrack.";
+            await MailService.SendMailAsync();
+            _processing = false;
+            AddSnackbar("Test email sent successfully!", Severity.Success);
+        }
+        catch (Exception)
+        {
+            _processing = false;
+            AddSnackbar("Error sending email, check server logs!", Severity.Error);
+        }
+    }
+
+    void AddSnackbar(string message, Severity severity)
+    {
+        Snackbar.Clear();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add(message, severity);
+    }
+}

@@ -1,0 +1,86 @@
+﻿@page "/logs"
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@inject LogService LogService
+
+<MudText Typo="Typo.h5" GutterBottom="true">Agent Logs</MudText>
+
+<MudTable Items="@logEntries" Dense="true" Hover="true" Breakpoint="Breakpoint.None" Style="width: 100%;">
+    <HeaderContent>
+        <MudTh Style="width: 20%;">
+            <MudTooltip Text="Refresh Data" Placement="Placement.Right">
+                <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
+            </MudTooltip>
+
+        </MudTh>
+        <MudTh Style="width: 15%;">Log Id</MudTh>
+        <MudTh Style="width: 25%;">Agent</MudTh>
+        <MudTh Style="width: 25%;">Domain</MudTh>
+        <MudTh Style="width: 15%;">Event Date</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="width: 20%;">
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBtnPress(context.Id))">
+                @((context.ShowDetails == true) ? "Hide" : "Show") Log Details
+            </MudButton>
+        </MudTd>
+        <MudTd DataLabel="Log Id" Style="width: 15%;">@context.Id</MudTd>
+        <MudTd DataLabel="Agent" Style="width: 25%;">@context.Agent</MudTd>
+        <MudTd DataLabel="Domain" Style="width: 25%;">@context.Domain</MudTd>
+        <MudTd DataLabel="Event Date" Style="width: 15%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            @context.DateTime
+        </MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+        @if (context.ShowDetails)
+        {
+            <MudTr>
+                <td colspan="4">
+                    <MudCard Elevation="0">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.body1">Message:</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText>
+                                @context.Message
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </td>
+            </MudTr>
+        }
+    </ChildRowContent>
+</MudTable>
+
+@code {
+    private IEnumerable<LogEntryDto> logEntries;
+    private Configurations configurations;
+
+    private async Task Reload()
+    {
+        await LoadData();
+        StateHasChanged();
+    }
+
+    private void ShowBtnPress(int id)
+    {
+        var message = logEntries.First(f => f.Id == id);
+
+        message.ShowDetails = !message.ShowDetails;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        configurations = Configuration.GetSection("Configurations").Get<Configurations>();
+        await LoadData();
+    }
+
+    protected async Task LoadData()
+    {
+        var client = ClientFactory.CreateClient("Default");
+        var result = await client.GetStringAsync($"{configurations.ApiBaseAddress}{configurations.LogsEndpoint}");
+        logEntries = await LogService.LogEntry(result);
+    }
+}

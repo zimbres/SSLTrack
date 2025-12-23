@@ -1,0 +1,20 @@
+﻿@page "/api"
+
+<h3>Api</h3>
+
+<MudCard Class="mt-4">
+    <MudCardContent>
+        <MudLink Href="/api/swagger" Target="_blank" Color="Color.Primary">
+            Api Version: @version
+        </MudLink>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private string? version;
+
+    protected override void OnInitialized()
+    {
+        version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+    }
+}

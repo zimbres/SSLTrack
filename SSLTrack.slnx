@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Aspire/">
+    <Project Path="src/SSLTrack.AppHost/SSLTrack.AppHost.csproj" />
+    <Project Path="src/SSLTrack.ServiceDefaults/SSLTrack.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/agent.yml" />
+    <File Path=".github/workflows/server.yml" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/SSLTrack/SSLTrack.csproj" />
+  <Project Path="src/SSLTrackAgent/SSLTrackAgent.csproj" />
+</Solution>

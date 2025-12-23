@@ -1,0 +1,122 @@
+﻿@inject DomainService DomainService
+
+<MudDialog>
+    <DialogContent>
+        @if (_exists)
+        {
+            <MudAlert Class="mb-4" Severity="Severity.Error">Domain already being tracked</MudAlert>
+        }
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    @if (_manual)
+                    {
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Label="Domain" Class="mt-3" @bind-Value="model.Domain" For="@(() => model.Domain)" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Label="Issuer" Class="mt-3" @bind-Value="model.Issuer" For="@(() => model.Issuer)" />
+                            </MudItem>
+                        </MudGrid>
+                        <MudDatePicker tabindex="-1" Class="mt-2" Label="Expiration Date" @bind-Date="model.ExpirationDate" />
+                    }
+                    else
+                    {
+                        <MudTextField Label="Domain" Class="mt-3" @bind-Value="model.Domain" For="@(() => model.Domain)" />
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField Label="Port" Class="mt-3" @bind-Value="model.Port" For="@(() => model.Port)" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect Class="mt-3" @bind-Value="agent" Label="Agent" @bind-SelectedValues="options">
+                                    @foreach (var agent in Agents.Where(a => ShouldIncludeAgent(a)))
+                                    {
+                                        <MudSelectItem T="Agent" Value="agent">@agent.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" OnClick="Process" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Processing</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Track</MudText>
+                        }
+                    </MudButton>
+                    <MudSwitch T="bool" @bind-Value="_manual" Label="No auto checks" Size="Size.Small" Class="ml-4" Color="Color.Warning" />
+                    <MudButton Variant="Variant.Filled" Class="ml-auto" OnClick="Cancel">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public List<Agent> Agents { get; set; }
+
+    private Agent agent { get; set; }
+
+    private bool _processing = false;
+    private bool _exists = false;
+    private bool _manual = false;
+
+    private IEnumerable<Agent> options { get; set; } = new HashSet<Agent> { new Agent() { Name = "Local" } };
+
+    DomainForm model = new DomainForm();
+
+    public class DomainForm
+    {
+        [Required]
+        public string? Domain { get; set; }
+        [Required]
+        public string Port { get; set; } = "443";
+        public string Issuer { get; set; }
+        public DateTime? ExpirationDate { get; set; } = DateTime.Today;
+    }
+
+    private List<string> SuppressedAgents = new() { "Manual" };
+
+    private bool ShouldIncludeAgent(Agent agent)
+    {
+        return !SuppressedAgents.Contains(agent.Name);
+    }
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        var domainExist = await DomainService.GetDomain(model.Domain);
+        _processing = false;
+        if (Validators.DomainExists(domainExist, model.Domain, int.Parse(model.Port), agent.Id))
+        {
+            _exists = true;
+            return;
+        }
+        if (_manual)
+        {
+            agent.Id = 1;
+        }
+        var domain = await DomainService.AddDomain(model.Domain.Trim(), int.Parse(model.Port.Trim()), model.Issuer, model.ExpirationDate, agent);
+        MudDialog.Close(DialogResult.Ok(domain));
+    }
+
+    void Process()
+    {
+        if (!string.IsNullOrEmpty(model.Domain) && !string.IsNullOrEmpty(model.Port))
+        {
+            _processing = true;
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

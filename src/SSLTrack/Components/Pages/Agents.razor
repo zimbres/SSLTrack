@@ -1,0 +1,162 @@
+﻿@page "/agents"
+@inject AgentService AgentService;
+@inject IDialogService DialogService
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+@inject ISnackbar Snackbar
+
+
+<MudText Typo="Typo.h5" GutterBottom="true">Agents</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <MudButton Class="mb-2" OnClick="@((e) => OpenDialog(diagOptions))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.SettingsRemote" Color="Color.Info" Style="width: 200px; height: 60px;">
+            Add Agent
+        </MudButton>
+
+        @if (agents == null)
+        {
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="agents" Dense="true" Hover="true" SortLabel="Sort By" Elevation="0" @onclick="RefreshStatuses">
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Name)">Agent</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<Agent, object>(x=>x.Id)">Id</MudTableSortLabel></MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Delete</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Agent">@context.Name</MudTd>
+                    <MudTd DataLabel="Id">@context.Id</MudTd>
+                    <MudTd DataLabel="Status">
+                        @if (context.Id == 0 || context.Id == 1)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbar4Bar" Size="Size.Small" Color="Color.Default" />
+                        }
+                        else if (GetAgentStatus(context.Id))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbar4Bar" Size="Size.Small" Color="Color.Success" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.SignalWifiOff" Size="Size.Small" Color="Color.Error" />
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Delete">
+                        @if (context.Id == 0 || context.Id == 1)
+                        {
+                            <MudTooltip Text="System agents cannot be deleted" Arrow="true" Placement="Placement.Left">
+                                <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" Disabled="true"
+                                               OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context)) : null)" />
+                            </MudTooltip>
+                        }
+                        else
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error"
+                                           OnClick="@(context.Id != 0 ? (() => ConfirmDelete(diagOptions, context)) : null)" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+<MudCard Class="mt-4">
+    <MudCardContent>
+        <MudText>
+            Local Agent
+        </MudText>
+        <iframe style="width:1280px;height:1024px;padding-top:10px;" src="/hangfire" frameborder="0"></iframe>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private IEnumerable<Agent> agents;
+    private Configurations configurations;
+
+    DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
+    Dictionary<int, DateTime> status = new();
+
+    private async Task OpenDialog(DialogOptions options)
+    {
+        var dialogReference = await DialogService.ShowAsync<NewAgent>("Add new Agent", options);
+        var dialogResult = await dialogReference.Result;
+        var agent = (Agent)dialogResult.Data;
+        if (!dialogResult.Canceled && agent is not null)
+        {
+            agents = await AgentService.GetAgents();
+            AddSnackbar($"Agent {agent.Name} added!", Severity.Success);
+            return;
+        }
+        if (!dialogResult.Canceled && agent is null)
+        {
+            AddSnackbar($"Failed to add agent, check data and try again!", Severity.Error);
+            return;
+        }
+    }
+
+    private async Task ConfirmDelete(DialogOptions options, Agent agent)
+    {
+        var parameters = new DialogParameters<DelAgent>
+        {
+            { x => x.Agent, agent }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<DelAgent>("Delete Agent", parameters, options);
+        var dialogResult = await dialogReference.Result;
+
+        if (!dialogResult.Canceled)
+        {
+            await DeleteAgent(agent.Name);
+            AddSnackbar($"Agent {agent.Name} deleted!", Severity.Success);
+        }
+    }
+
+    protected async Task DeleteAgent(string agentName)
+    {
+        await AgentService.DeleteAgent(agentName);
+        agents = await AgentService.GetAgents();
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        configurations = Configuration.GetSection("Configurations").Get<Configurations>();
+        agents = await AgentService.GetAgents();
+        status = await GetAgentsStatus();
+    }
+
+    private async Task RefreshStatuses()
+    {
+        status = await GetAgentsStatus();
+        StateHasChanged();
+    }
+
+    protected async Task<Dictionary<int, DateTime>> GetAgentsStatus()
+    {
+        var client = ClientFactory.CreateClient("Default");
+        var result = await client.GetFromJsonAsync<Dictionary<int, DateTime>>($"{configurations.ApiBaseAddress}{configurations.AgentsStatusEndpoint}");
+        return result;
+    }
+
+    protected bool GetAgentStatus(int id)
+    {
+        if (status.TryGetValue(id, out var dateTime))
+        {
+            if (dateTime >= DateTime.Now.AddMinutes(-2))
+                return true;
+        }
+        return false;
+    }
+
+    void AddSnackbar(string message, Severity severity)
+    {
+        Snackbar.Clear();
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add(message, severity);
+    }
+}

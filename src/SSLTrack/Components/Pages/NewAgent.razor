@@ -1,0 +1,70 @@
+﻿@inject AgentService AgentService
+
+<MudDialog>
+    <DialogContent>
+        @if (_exists)
+        {
+            <MudAlert Class="mb-4" Severity="Severity.Error">Agent already exist</MudAlert>
+        }
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    <MudTextField Label="Agent Name" Class="mt-3" @bind-Value="model.Name" For="@(() => model.Name)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" OnClick="Process" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Processing</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Add</MudText>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Class="ml-auto" OnClick="Cancel">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+
+    private bool _processing = false;
+    private bool _exists = false;
+
+    AgentForm model = new AgentForm();
+
+    public class AgentForm
+    {
+        [Required]
+        public string? Name { get; set; }
+    }
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        var agentExist = await AgentService.GetAgent(model.Name);
+        _processing = false;
+        if (Validators.AgentExists(agentExist, model.Name))
+        {
+            _exists = true;
+            return;
+        }
+        var agent = await AgentService.AddAgent(model.Name);
+        MudDialog.Close(DialogResult.Ok(agent));
+    }
+
+    void Process()
+    {
+        if (!string.IsNullOrEmpty(model.Name))
+        {
+            _processing = true;
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}
