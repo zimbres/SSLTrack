@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: src/SSLTrack/Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: app
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./appsettings.ssltrack.json
+        target: /app/appsettings.json
+      - type: bind
+        source: ./data
+        target: /app/data
+
+  agent:
+    build:
+      context: .
+      dockerfile: src/SSLTrackAgent/Dockerfile
+    container_name: agent
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./appsettings.agent.json
+        target: /app/appsettings.json
+    depends_on:
+      - app
+
+  smtp4dev:
+    image: rnwood/smtp4dev:3.14.0
+    container_name: smtp-ssltrack
+    restart: unless-stopped
+    ports:
+      - "8025:80"
+      - "2525:25"
+    environment:
+      - ServerOptions__HostName=smtp4dev

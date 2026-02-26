@@ -6,6 +6,9 @@
   <Folder Name="/Solution Items/">
     <File Path=".github/workflows/agent.yml" />
     <File Path=".github/workflows/server.yml" />
+    <File Path="appsettings.agent.json" />
+    <File Path="appsettings.ssltrack.json" />
+    <File Path="docker-compose.yml" />
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
