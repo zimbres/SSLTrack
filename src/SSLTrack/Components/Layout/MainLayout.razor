@@ -18,10 +18,10 @@
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4 mb-4">
+    <MudMainContent Class="mt-16 pa-4 mb-16">
         @Body
     </MudMainContent>
-    <MudAppBar Elevation="1" Bottom="true" Dense="true" Fixed="true">
+    <MudAppBar Elevation="1" Bottom="true" Dense="true" Fixed="true" Style="z-index: 1000;">
         <MudGrid Justify="Justify.Center">
             <MudItem>
                 <a href="https://github.com/zimbres/SSLTrack" target="_blank">
