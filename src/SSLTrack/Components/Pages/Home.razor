@@ -65,6 +65,48 @@ else
         </MudItem>
     </MudGrid>
 
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="4">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-primary);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">Auto Checked</MudText>
+                            <MudText Typo="Typo.h3">@_autoChecked</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.AutoMode" Color="Color.Primary" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-secondary);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Agent Checked</MudText>
+                            <MudText Typo="Typo.h3">@_agentChecked</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.SettingsRemote" Color="Color.Secondary" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-dark);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Default">Manual</MudText>
+                            <MudText Typo="Typo.h3">@_manual</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.PanTool" Color="Color.Default" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
     @if (_attentionDomains.Any())
     {
         <MudCard>
@@ -96,7 +138,7 @@ else
 @code {
     private IEnumerable<Domain>? _domains;
     private List<Domain> _attentionDomains = [];
-    private int _total, _valid, _expiringSoon, _expired;
+    private int _total, _valid, _expiringSoon, _expired, _autoChecked, _agentChecked, _manual;
 
     protected override async Task OnInitializedAsync()
     {
@@ -114,6 +156,9 @@ else
         }
 
         _total = _domains.Count();
+        _autoChecked = _domains.Count(d => d.Agent == 0);
+        _manual = _domains.Count(d => d.Agent == 1);
+        _agentChecked = _domains.Count(d => d.Agent != 0 && d.Agent != 1);
         _attentionDomains = _domains
             .Where(d => CalcExpiration(d.ExpiryDate) < 30)
             .OrderBy(d => d.ExpiryDate)
