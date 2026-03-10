@@ -12,6 +12,8 @@
 dev.db
 *.db-shm
 *.db-wal
+CLAUDE.md
+.claude
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

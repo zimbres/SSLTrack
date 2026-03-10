@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IHttpContextAccessor HttpContextAccessor
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" @rendermode="InteractiveServer" />
 <MudPopoverProvider />
@@ -37,6 +38,15 @@
     private MudTheme _theme = new();
     private bool _isDarkMode;
 
+    protected override void OnInitialized()
+    {
+        var cookie = HttpContextAccessor.HttpContext?.Request.Cookies["isDarkMode"];
+        if (bool.TryParse(cookie, out var darkMode))
+        {
+            _isDarkMode = darkMode;
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -45,8 +55,12 @@
             {
                 await localStorage.SetItemAsync("isDarkMode", _isDarkMode);
             }
-            _isDarkMode = bool.Parse(await localStorage.GetItemAsync<string>("isDarkMode"));
-            StateHasChanged();
+            var stored = bool.Parse(await localStorage.GetItemAsync<string>("isDarkMode"));
+            if (stored != _isDarkMode)
+            {
+                _isDarkMode = stored;
+                StateHasChanged();
+            }
         }
     }
 

@@ -15,6 +15,16 @@
 </head>
 
 <body>
+    <script suppress-error="BL9992">
+        (function () {
+            try {
+                var v = localStorage.getItem('isDarkMode');
+                if (v !== null) {
+                    document.cookie = 'isDarkMode=' + JSON.parse(v) + ';path=/;max-age=31536000;SameSite=Lax';
+                }
+            } catch (e) { }
+        })();
+    </script>
     <Routes @rendermode="@InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
 	<script src="_content/MudBlazor/MudBlazor.min.js"></script>

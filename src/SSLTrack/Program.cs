@@ -26,6 +26,7 @@ builder.Services.AddSingleton<CertificateService>();
 builder.Services.AddSingleton<LogService>();
 builder.Services.AddSingleton<DnsService>();
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient("Default");
 builder.Services.AddHttpClient("IgnoreSSL")
 .ConfigurePrimaryHttpMessageHandler(() =>
