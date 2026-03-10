@@ -157,7 +157,7 @@ else
         }
 
         _total = _domains.Count();
-        _autoChecked = _domains.Count(d => d.Agent == 0);
+        _autoChecked = _domains.Count(d => d.Agent != 1);
         _manual = _domains.Count(d => d.Agent == 1);
         _agentChecked = _domains.Count(d => d.Agent != 0 && d.Agent != 1);
         _attentionDomains = _domains
