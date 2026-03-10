@@ -1,23 +1,134 @@
 ﻿@page "/"
+@inject DomainService DomainService
 
-<MudCard>
-    <MudCardContent>
-        <MudText>
-            Ensure the continued security and reliability of your website by staying vigilant about SSL certificate expiration.
-        </MudText>
-    </MudCardContent>
-    <MudCardContent>
-        <MudText>
-            Avoid potential downtime, revenue loss, and reputational harm with SSLTrack.
-        </MudText>
-    </MudCardContent>
-    <MudCardContent>
-        <MudText>
-            Actively monitors your SSL/TLS certificates, alerting you to any upcoming expirations, modifications, or potentially fraudulent certificates. Don't wait until it's too late – set up SSL certificate expiration monitoring today!
-        </MudText>
-    </MudCardContent>
-</MudCard>
+<MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
+<MudText Typo="Typo.h5" GutterBottom="true">Certificate status overview</MudText>
+
+@if (_domains == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-info);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Info">Total Tracked</MudText>
+                            <MudText Typo="Typo.h3">@_total</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Domain" Color="Color.Info" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-success);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Success">Valid</MudText>
+                            <MudText Typo="Typo.h3">@_valid</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-warning);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Warning">Expiring Soon</MudText>
+                            <MudText Typo="Typo.h3">@_expiringSoon</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-error);">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Error">Expired</MudText>
+                            <MudText Typo="Typo.h3">@_expired</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Style="font-size: 3rem; opacity: 0.3;" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    @if (_attentionDomains.Any())
+    {
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6" GutterBottom="true">Requires Attention</MudText>
+                <MudTable Items="_attentionDomains" Hover="true" Dense="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Days Left</MudTh>
+                        <MudTh>Domain</MudTh>
+                        <MudTh>Issuer</MudTh>
+                        <MudTh Style="text-align: center;">Expire Date</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Days">
+                            <MudChip T="string" Color="@ChipColor(CalcExpiration(context.ExpiryDate))">
+                                <div style="text-align:center; min-width:50px; max-width: 50px">@CalcExpiration(context.ExpiryDate)</div>
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Domain">@context.DomainName</MudTd>
+                        <MudTd DataLabel="Issuer">@context.Issuer</MudTd>
+                        <MudTd Style="text-align: center;" DataLabel="ExpiryDate">@context.ExpiryDate.ToString("yyyy-MM-dd")</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCardContent>
+        </MudCard>
+    }
+}
 
 @code {
+    private IEnumerable<Domain>? _domains;
+    private List<Domain> _attentionDomains = [];
+    private int _total, _valid, _expiringSoon, _expired;
 
+    protected override async Task OnInitializedAsync()
+    {
+        _domains = await DomainService.GetDomains();
+
+        foreach (var domain in _domains)
+        {
+            var days = CalcExpiration(domain.ExpiryDate);
+            if (days < 1)
+                _expired++;
+            else if (days < 30)
+                _expiringSoon++;
+            else
+                _valid++;
+        }
+
+        _total = _domains.Count();
+        _attentionDomains = _domains
+            .Where(d => CalcExpiration(d.ExpiryDate) < 30)
+            .OrderBy(d => d.ExpiryDate)
+            .ToList();
+    }
+
+    private double CalcExpiration(DateTime expireDate)
+    {
+        return (expireDate.Date - DateTime.Now.Date).TotalDays;
+    }
+
+    private Color ChipColor(double days)
+    {
+        if (days < 1) return Color.Error;
+        if (days < 30) return Color.Warning;
+        return Color.Success;
+    }
 }
