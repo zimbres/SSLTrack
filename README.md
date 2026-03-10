@@ -2,7 +2,9 @@
 
 Monitor SSL/TLS certificate expiration across multiple domains and receive email alerts before they expire. SSLTrack uses a distributed architecture with remote agents that can check certificates from different network locations.
 
-![SSLTrack Dashboard](assets/images/SSLTrack.png)
+![Home](assets/images/Home.png)
+
+![Domains](assets/images/SSLTrack.png)
 
 ---
 
