@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject DomainService DomainService
+@inject NavigationManager Navigation
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 <MudText Typo="Typo.h5" GutterBottom="true">Certificate status overview</MudText>
@@ -12,7 +13,7 @@ else
 {
     <MudGrid Class="mb-4">
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-info);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-info); cursor: pointer;" @onclick="@(() => Navigate("/domains"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -25,7 +26,7 @@ else
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-success);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-success); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=valid"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -38,7 +39,7 @@ else
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-warning);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-warning); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=expiring"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -51,7 +52,7 @@ else
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-error);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-error); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=expired"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -67,7 +68,7 @@ else
 
     <MudGrid Class="mb-4">
         <MudItem xs="12" sm="4">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-primary);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-primary); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=auto"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -80,7 +81,7 @@ else
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="4">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-secondary);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-secondary); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=agent"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -93,7 +94,7 @@ else
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="4">
-            <MudCard Style="border-left: 4px solid var(--mud-palette-dark);">
+            <MudCard Style="border-left: 4px solid var(--mud-palette-dark); cursor: pointer;" @onclick="@(() => Navigate("/domains?filter=manual"))">
                 <MudCardContent>
                     <div class="d-flex justify-space-between align-center">
                         <div>
@@ -175,5 +176,10 @@ else
         if (days < 1) return Color.Error;
         if (days < 30) return Color.Warning;
         return Color.Success;
+    }
+
+    private void Navigate(string url)
+    {
+        Navigation.NavigateTo(url);
     }
 }

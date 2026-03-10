@@ -3,17 +3,35 @@
 @inject AgentService AgentService;
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 
 <MudText Typo="Typo.h3" GutterBottom="true">Tracked Domains</MudText>
-<MudText Typo="Typo.h5" GutterBottom="true">Certificates currently being monitored</MudText>
+<MudText Typo="Typo.h5" GutterBottom="true">
+    @if (!string.IsNullOrEmpty(Filter))
+    {
+        @($"Filtered by: {FilterLabel}")
+    }
+    else
+    {
+        @("Certificates currently being monitored")
+    }
+</MudText>
 
 <MudCard>
     <MudCardContent>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
-                Track a Domain
-            </MudButton>
+            <div class="d-flex gap-4 align-center">
+                <MudButton OnClick="@((e) => OpenDialog(diagOptions, agents))" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" Color="Color.Info" Style="width: 200px; height: 60px;">
+                    Track a Domain
+                </MudButton>
+                @if (!string.IsNullOrEmpty(Filter))
+                {
+                    <MudButton OnClick="ShowAll" Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.FilterAltOff" Color="Color.Default" Style="height: 60px;">
+                        Show All
+                    </MudButton>
+                }
+            </div>
             <MudTooltip Text="Refresh Data" Placement="Placement.Left">
                 <MudIconButton OnClick="Reload" Icon="@Icons.Material.Filled.Refresh" aria-label="delete" />
             </MudTooltip>
@@ -108,7 +126,11 @@
     </MudCardContent>
 </MudCard>
 @code {
+    [SupplyParameterFromQuery(Name = "filter")]
+    public string? Filter { get; set; }
+
     private IEnumerable<Domain>? domains;
+    private IEnumerable<Domain>? allDomains;
     private IEnumerable<Agent>? agents;
 
     DialogOptions diagOptions = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
@@ -138,7 +160,8 @@
 
     private async Task Reload()
     {
-        domains = await DomainService.GetDomains();
+        allDomains = await DomainService.GetDomains();
+        domains = ApplyFilter(allDomains);
         StateHasChanged();
     }
 
@@ -193,8 +216,41 @@
 
     protected override async Task OnInitializedAsync()
     {
-        domains = await DomainService.GetDomains();
+        allDomains = await DomainService.GetDomains();
         agents = await AgentService.GetAgents();
+        domains = ApplyFilter(allDomains);
+    }
+
+    private IEnumerable<Domain> ApplyFilter(IEnumerable<Domain> source)
+    {
+        return Filter?.ToLower() switch
+        {
+            "valid" => source.Where(d => CalcExpiration(d.ExpiryDate) >= 30),
+            "expiring" => source.Where(d => CalcExpiration(d.ExpiryDate) >= 1 && CalcExpiration(d.ExpiryDate) < 30),
+            "expired" => source.Where(d => CalcExpiration(d.ExpiryDate) < 1),
+            "auto" => source.Where(d => d.Agent == 0),
+            "agent" => source.Where(d => d.Agent != 0 && d.Agent != 1),
+            "manual" => source.Where(d => d.Agent == 1),
+            _ => source
+        };
+    }
+
+    private string FilterLabel => Filter?.ToLower() switch
+    {
+        "valid" => "Valid",
+        "expiring" => "Expiring Soon",
+        "expired" => "Expired",
+        "auto" => "Auto Checked",
+        "agent" => "Agent Checked",
+        "manual" => "Manual",
+        _ => ""
+    };
+
+    private void ShowAll()
+    {
+        Filter = null;
+        domains = allDomains;
+        Navigation.NavigateTo("/domains", replace: true);
     }
 
     protected double CalcExpiration(DateTime expireDate)
