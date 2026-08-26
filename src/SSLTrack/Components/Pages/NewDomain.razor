@@ -72,7 +72,7 @@
     private bool _exists = false;
     private bool _manual = false;
 
-    private IEnumerable<Agent> options { get; set; } = new HashSet<Agent> { new Agent() { Name = "Local" } };
+    private IReadOnlyCollection<Agent> options { get; set; } = new HashSet<Agent> { new Agent() { Name = "Local" } };
 
     DomainForm model = new DomainForm();
 
