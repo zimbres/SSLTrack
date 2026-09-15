@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/SSLTrack.AppHost/SSLTrack.AppHost.csproj"
+  }
+}
