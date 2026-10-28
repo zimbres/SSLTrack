@@ -8,7 +8,6 @@ public class Worker : BackgroundService
     private readonly Configurations _configurations;
     private readonly HttpClient _httpClient;
     private readonly AuthService _authService;
-
     public Worker(ILogger<Worker> logger, IConfiguration configuration, WorkerService workerService, IHttpClientFactory httpClientFactory, AuthService authService)
     {
         _logger = logger;
@@ -22,21 +21,18 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogWarning("App version: {version}", Assembly.GetExecutingAssembly().GetName().Version?.ToString());
-
         var lastProcessTime = DateTimeOffset.MinValue;
         var lastHeartbeatTime = DateTimeOffset.MinValue;
-
         while (!stoppingToken.IsCancellationRequested)
         {
             var now = DateTimeOffset.Now;
-
             if (now - lastHeartbeatTime >= TimeSpan.FromSeconds(60))
             {
                 try
                 {
                     await _httpClient.ApplyAuthAsync(_authService);
-                    await _httpClient.SendAsync(new HttpRequestMessage(
-                        HttpMethod.Head, $"{_configurations.SSLTrackApiAddress}{_configurations.PingEndpoint}/{_configurations.AgentId}"), stoppingToken);
+                    using var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, $"{_configurations.SSLTrackApiAddress}{_configurations.PingEndpoint}/{_configurations.AgentId}"), stoppingToken);
+                    response.EnsureSuccessStatusCode();
                 }
                 catch (Exception ex)
                 {
@@ -56,6 +52,7 @@ public class Worker : BackgroundService
 
                 lastProcessTime = now;
             }
+
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
     }

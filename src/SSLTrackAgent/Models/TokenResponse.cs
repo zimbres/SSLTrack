@@ -1,4 +1,4 @@
-﻿namespace SSLTrackAgent.Models;
+namespace SSLTrackAgent.Models;
 
 public class TokenResponse
 {
@@ -6,7 +6,10 @@ public class TokenResponse
     public string AccessToken { get; set; } = string.Empty;
 
     [JsonPropertyName("expires_in")]
-    public int ExpiresIn { get; set; }
+    public int ExpiresIn
+    {
+        get; set;
+    }
 
     [JsonPropertyName("token_type")]
     public string TokenType { get; set; } = string.Empty;

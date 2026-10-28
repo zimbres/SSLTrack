@@ -1,0 +1,44 @@
+@page "/profile"
+@attribute [Authorize(Policy="Human")]
+@inject AccessGuard Access
+<MudCard Class="account-panel">
+    <MudText Typo="Typo.h4" HtmlTag="h1">Your profile</MudText>
+    <MudText Class="account-intro">Manage your display name, picture, and password.</MudText>
+    <AccountNotice />
+    @if (user is not null)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="my-6">
+            <ProfilePicture User="user" />
+            <MudStack Spacing="1"><MudText Typo="Typo.subtitle1">@user.Email</MudText><MudText Typo="Typo.body2">@user.Role · @user.AuthenticationType sign-in</MudText></MudStack>
+        </MudStack>
+        <form method="post" action="/account/profile" data-enhance="false">
+            <AntiforgeryToken />
+            <MudStack Spacing="3">
+                <MudTextField T="string" @bind-Value="user.DisplayName" name="displayName" Label="Display name" Required="true" MaxLength="100" Variant="Variant.Outlined" autocomplete="name" />
+                <MudSelect T="string" @bind-Value="user.AvatarType" Label="Picture source" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("Default")">Default avatar</MudSelectItem><MudSelectItem Value="@("Gravatar")">Gravatar</MudSelectItem><MudSelectItem Value="@("Custom")">Custom picture URL</MudSelectItem>
+                </MudSelect><input type="hidden" name="avatarType" value="@user.AvatarType" />
+                <MudTextField T="string" @bind-Value="user.AvatarUrl" name="avatarUrl" Label="Custom picture URL" InputType="InputType.Url" Placeholder="https://…" MaxLength="2048" Variant="Variant.Outlined" HelperText="Custom pictures must use HTTPS. Selecting Gravatar loads a picture from Gravatar using a hash of your email address. External pictures may reveal your IP address to their host." />
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save profile</MudButton>
+            </MudStack>
+        </form>
+        <MudDivider Class="my-8" /><MudText Typo="Typo.h6" HtmlTag="h2" GutterBottom="true">Sign-in security</MudText>
+        @if (user.AuthenticationType == "Local")
+        {
+            <MudLink Href="/change-password">Change password</MudLink>
+        }
+        else
+        {
+            <MudText>Your organization manages your password through its identity provider.</MudText>
+        }
+        <MudText Typo="Typo.body2" Class="mt-2">Your email is your account ID and cannot be changed. An administrator manages your role and sign-in method.</MudText>
+    }
+</MudCard>
+@code
+{
+    private AppUser? user;
+    protected override async Task OnInitializedAsync()
+    {
+        user = await Access.RequireHumanAsync();
+    }
+}

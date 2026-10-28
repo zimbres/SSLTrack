@@ -1,92 +1,93 @@
-﻿namespace SSLTrack.Controllers;
+namespace SSLTrack.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class DomainsController : ControllerBase
+[Authorize(Policy = "AgentOrHuman")]
+public class DomainsController(DomainService domains, IDbContextFactory<ApplicationDbContext> factory) : ControllerBase
 {
-    private readonly DomainService _domainService;
-    private readonly AgentService _agentService;
-
-    public DomainsController(DomainService domainService, AgentService agentService)
-    {
-        _domainService = domainService;
-        _agentService = agentService;
-    }
-
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Domain>>> GetDomains()
-    {
-        var domains = await _domainService.GetDomains();
-        return Ok(domains);
-    }
-
-
+    [HttpGet, Authorize(Policy = "Human")]
+    public async Task<IActionResult> GetDomains() => Ok(await domains.GetDomains());
     [HttpGet("agents/{agent}")]
-    public async Task<ActionResult<IEnumerable<Domain>>> GetDomainsByAgentId(int agent)
+    public async Task<IActionResult> GetDomainsByAgentId(int agent)
     {
-        var agentDb = await _agentService.GetAgent(agent);
-        if (!agentDb.Any())
+        if (IsAgent && AgentId != agent)
+        {
+            return Forbid();
+        }
+
+        await using var db = await factory.CreateDbContextAsync();
+        if (!await db.Agents.AnyAsync(x => x.Id == agent))
         {
             return NotFound();
         }
-        var domains = await _domainService.GetDomains(agent);
-        return Ok(domains);
+
+        return Ok(await db.Domains.AsNoTracking().Where(x => x.Agent == agent).ToListAsync());
     }
 
-    [HttpGet("{domainName}")]
-    public async Task<ActionResult<Domain>> GetDomain(string domainName)
+    [HttpGet("{domainName}"), Authorize(Policy = "Human")]
+    public async Task<IActionResult> GetDomain(string domainName)
     {
-        var domain = await _domainService.GetDomain(domainName);
-
-        if (!domain.Any())
-        {
-            return NotFound();
-        }
-        return Ok(domain);
+        var result = await domains.GetDomain(domainName);
+        return result.Any() ? Ok(result) : NotFound();
     }
 
-    [HttpPost("update")]
+    [HttpPost("update"), Authorize(Policy = "Admin")]
     public async Task<IActionResult> UpdateAll()
     {
-        await _domainService.UpdateAllDomains();
+        await domains.UpdateAllDomainsForUser();
         return Ok();
     }
 
     [HttpPut("{domainName}")]
-    public async Task<IActionResult> PutDomain(string domainName, Domain domain)
+    public async Task<IActionResult> PutDomain(string domainName, Domain report)
     {
-        if (domainName != domain.DomainName)
+        if (domainName != report.DomainName)
         {
             return BadRequest();
         }
 
-        var updatedDomain = await _domainService.UpdateDomain(domainName, domain);
-        if (updatedDomain)
+        if (!IsAgent)
         {
-            return NoContent();
-        }
-        return NotFound();
-    }
+            if (!User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
 
-    [HttpPost]
-    public async Task<ActionResult<Domain>> PostDomain(string domain, int port, string? issuer = null, DateTime? expirationDate = null)
-    {
-        var result = await _domainService.AddDomain(domain, port, issuer, expirationDate);
-        if (result is not null)
-        {
-            return Ok(result);
+            return await domains.UpdateDomain(domainName, report) ? NoContent() : NotFound();
         }
-        return StatusCode(500);
-    }
 
-    [HttpDelete("{domainName}")]
-    public async Task<IActionResult> DeleteDomain(int domainId)
-    {
-        var result = await _domainService.DeleteDomain(domainId);
-        if (result is false)
+        await using var db = await factory.CreateDbContextAsync();
+        // Match the assigned agent and original port. Never trust IDs or assignment in a report.
+        var matches = await db.Domains.Where(x => x.DomainName == domainName && x.Agent == AgentId).ToListAsync();
+        if (matches.Count == 0)
         {
-            return NotFound();
+            return Forbid();
         }
+
+        var exact = matches.Where(x => x.Port == report.Port).ToList();
+        var domain = matches.Count == 1 ? matches[0] : exact.Count == 1 ? exact[0] : null;
+        if (domain is null)
+        {
+            return Conflict("The report does not identify one assigned domain and port.");
+        }
+
+        domain.CertCN = report.CertCN;
+        domain.Issuer = report.Issuer;
+        domain.ExpiryDate = report.ExpiryDate;
+        domain.LastChecked = report.LastChecked;
+        await db.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpPost, Authorize(Policy = "Admin")]
+    public async Task<IActionResult> PostDomain(string domain, int port, string? issuer = null, DateTime? expirationDate = null)
+    {
+        var result = await domains.AddDomain(domain, port, issuer, expirationDate);
+        return result is null ? StatusCode(500) : Ok(result);
+    }
+
+    [HttpDelete("{domainId:int}"), Authorize(Policy = "Admin")]
+    public async Task<IActionResult> DeleteDomain(int domainId) => await domains.DeleteDomain(domainId) ? NoContent() : NotFound();
+    private bool IsAgent => User.FindFirstValue("kind") == "agent";
+    private int AgentId => int.Parse(User.FindFirstValue("agent_id")!);
 }

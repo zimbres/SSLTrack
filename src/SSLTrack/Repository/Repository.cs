@@ -1,9 +1,8 @@
-﻿namespace SSLTrack.Repository;
+namespace SSLTrack.Repository;
 
 public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity : Entity, new()
 {
     protected readonly IDbContextFactory<ApplicationDbContext> DbContextFactory;
-
     protected Repository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
         DbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
@@ -50,7 +49,10 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
     public virtual async Task Remove(int id)
     {
         using var context = DbContextFactory.CreateDbContext();
-        var entity = new TEntity { Id = id };
+        var entity = new TEntity
+        {
+            Id = id
+        };
         context.Set<TEntity>().Attach(entity);
         context.Set<TEntity>().Remove(entity);
         await context.SaveChangesAsync();

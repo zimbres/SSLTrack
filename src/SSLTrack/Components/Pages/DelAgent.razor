@@ -1,4 +1,4 @@
-﻿@inject DomainService DomainService
+@inject DomainService DomainService
 
 <MudDialog>
     <DialogContent>
@@ -18,12 +18,12 @@
     </DialogActions>
 </MudDialog>
 
-@code {
+@code
+{
     [CascadingParameter]
     private IMudDialogInstance? MudDialog { get; set; }
 
     private bool _exists = false;
-
     [Parameter]
     public Agent Agent { get; set; }
 
@@ -35,6 +35,7 @@
             _exists = true;
             return;
         }
+
         MudDialog.Close(DialogResult.Ok(true));
     }
 

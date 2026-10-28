@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Extensions;
+namespace SSLTrack.Extensions;
 
 public static class Formater
 {
@@ -12,6 +12,7 @@ public static class Formater
             {
                 return match.Groups[1].Value.Replace("\"", "");
             }
+
             return issuer.Replace("CN=", "");
         }
         catch
@@ -19,6 +20,7 @@ public static class Formater
             return issuer;
         }
     }
+
     public static string FormateCN(this string cn)
     {
         try

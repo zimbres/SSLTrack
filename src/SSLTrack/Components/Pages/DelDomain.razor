@@ -1,4 +1,4 @@
-﻿<MudDialog>
+<MudDialog>
     <DialogContent>
         <MudCard Class="mb-4">
             <MudCardContent>
@@ -12,7 +12,8 @@
     </DialogActions>
 </MudDialog>
 
-@code {
+@code
+{
     [CascadingParameter]
     private IMudDialogInstance? MudDialog { get; set; }
 
@@ -20,6 +21,5 @@
     public Domain Domain { get; set; }
 
     private void Submit() => MudDialog.Close(DialogResult.Ok(true));
-
     private void Cancel() => MudDialog.Cancel();
 }

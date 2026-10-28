@@ -1,0 +1,30 @@
+@if (!string.IsNullOrWhiteSpace(Error) && Error is not ("oidc" or "credentials"))
+{
+    <MudAlert Severity="Severity.Error" Class="my-4">@Error</MudAlert>
+}
+@if (Saved == "true")
+{
+    <MudAlert Severity="Severity.Success" Class="my-4" role="status">Changes saved.</MudAlert>
+}
+@if (Tested == "true")
+{
+    <MudAlert Severity="Severity.Success" Class="my-4" role="status">Test email sent successfully.</MudAlert>
+}
+@if (Message == "password-changed")
+{
+    <MudAlert Severity="Severity.Success" Class="my-4" role="status">Password changed. Sign in with your new password.</MudAlert>
+}
+@code
+{
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "saved")]
+    public string? Saved { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tested")]
+    public string? Tested { get; set; }
+
+    [SupplyParameterFromQuery(Name = "message")]
+    public string? Message { get; set; }
+}

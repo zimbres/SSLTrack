@@ -1,4 +1,4 @@
-﻿global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Options;
 global using SSLTrackAgent;
 global using SSLTrackAgent.Extensions;
 global using SSLTrackAgent.Models;

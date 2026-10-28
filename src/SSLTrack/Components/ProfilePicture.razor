@@ -1,0 +1,19 @@
+<MudAvatar Class="@(Small ? "profile-avatar profile-avatar-small" : "profile-avatar")" aria-label="Profile picture">
+    @if (Avatar.Url(User) is { } url)
+    {
+        <MudImage Src="@url" FallbackSrc="/images/avatar-default.svg" Alt="" ObjectFit="ObjectFit.Cover" Style="width:100%;height:100%" referrerpolicy="no-referrer" />
+    }
+    else
+    {
+
+        <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Style="width:100%;height:100%" />
+    }
+</MudAvatar>
+@code
+{
+    [Parameter, EditorRequired]
+    public AppUser User { get; set; } = default!;
+
+    [Parameter]
+    public bool Small { get; set; }
+}

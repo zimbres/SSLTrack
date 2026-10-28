@@ -1,4 +1,4 @@
-﻿namespace SSLTrackAgent.Services;
+namespace SSLTrackAgent.Services;
 
 public class AgentService
 {
@@ -8,7 +8,6 @@ public class AgentService
     private readonly LogService _logService;
     private HttpClient _httpClient;
     private readonly AuthService _authService;
-
     public AgentService(ILogger<AgentService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, LogService logService, AuthService authService)
     {
         _logger = logger;
@@ -26,8 +25,6 @@ public class AgentService
         {
             PropertyNameCaseInsensitive = true
         };
-
-
         try
         {
             await _httpClient.ApplyAuthAsync(_authService);
@@ -40,6 +37,7 @@ public class AgentService
             {
                 await _logService.PushLog($"Agent Id '{_configurations.AgentId}' not found", "");
             }
+
             _logger.LogError(ex, "Error getting domains");
             return null;
         }
@@ -56,7 +54,8 @@ public class AgentService
         try
         {
             await _httpClient.ApplyAuthAsync(_authService);
-            await _httpClient.PutAsJsonAsync($"{_configurations.SSLTrackApiAddress}{_configurations.UpdateDomainEndpoint}{payload.DomainName}", payload);
+            using var response = await _httpClient.PutAsJsonAsync($"{_configurations.SSLTrackApiAddress}{_configurations.UpdateDomainEndpoint}{Uri.EscapeDataString(payload.DomainName)}", payload);
+            response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {

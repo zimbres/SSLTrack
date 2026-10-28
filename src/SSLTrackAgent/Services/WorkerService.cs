@@ -1,4 +1,4 @@
-﻿namespace SSLTrackAgent.Services;
+namespace SSLTrackAgent.Services;
 
 public class WorkerService
 {
@@ -6,7 +6,6 @@ public class WorkerService
     private readonly AgentService _agentService;
     private readonly CertificateService _certificateDownloader;
     private readonly DnsService _dnsService;
-
     public WorkerService(ILogger<AgentService> logger, AgentService agentService, CertificateService certificateDownloader, DnsService dnsService)
     {
         _logger = logger;
@@ -18,7 +17,6 @@ public class WorkerService
     public async Task ProcessDomains()
     {
         var domains = await _agentService.GetDomains();
-
         if (domains is not null)
         {
             foreach (var domain in domains)
@@ -52,8 +50,12 @@ public class WorkerService
         if (ip is not null)
         {
             var isPrivate = ip.FirstOrDefault().IsPrivateIp();
-            if (!isPrivate) return true;
+            if (!isPrivate)
+            {
+                return true;
+            }
         }
+
         return false;
     }
 }

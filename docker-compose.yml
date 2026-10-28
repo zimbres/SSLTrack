@@ -6,6 +6,10 @@ services:
     ports:
       - "8080:8080"
     container_name: app
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${SSLTRACK_ENVIRONMENT:-Production}
+      Authentication__Bootstrap__Email: ${SSLTRACK_ADMIN_EMAIL:-}
+      Authentication__Bootstrap__Password: ${SSLTRACK_ADMIN_PASSWORD:-}
     restart: unless-stopped
     volumes:
       - type: bind

@@ -1,6 +1,7 @@
-﻿namespace SSLTrack.Interfaces;
+namespace SSLTrack.Interfaces;
 
-public interface IRepository<TEntity> where TEntity : Entity
+public interface IRepository<TEntity>
+    where TEntity : Entity
 {
     Task<int> Add(TEntity entity);
     Task<TEntity> GetById(int id);

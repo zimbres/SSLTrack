@@ -1,8 +1,34 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="domains" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Domain">Domains</MudNavLink>
-    <MudNavLink Href="notifications" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Email">Notifications</MudNavLink>
-    <MudNavLink Href="agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SettingsRemote">Agents</MudNavLink>
-    <MudNavLink Href="logs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DataObject">Agent Logs</MudNavLink>
-    <MudNavLink Href="api" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Api">Api</MudNavLink>
+<div class="sidebar-content">
+    @if (ShowNavigation)
+    {
+        <div class="sidebar-navigation">
+<MudNavMenu>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="domains" Icon="@Icons.Material.Filled.Domain">Domains</MudNavLink>
+            <MudNavLink Href="agents" Icon="@Icons.Material.Filled.SettingsRemote">Agents</MudNavLink>
+            <MudNavLink Href="logs" Icon="@Icons.Material.Filled.DataObject">Agent Logs</MudNavLink>
+            <MudNavLink Href="api" Icon="@Icons.Material.Filled.Api">API</MudNavLink>
+            <AuthorizeView Roles="Admin" Context="admin">
+                <MudDivider Class="my-3" />
+                <MudNavLink Href="/users" ForceLoad="true" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                <MudNavLink Href="/service-accounts" ForceLoad="true" Icon="@Icons.Material.Filled.ManageAccounts">Service accounts</MudNavLink>
+                <MudNavLink Href="/notifications" ForceLoad="true" Icon="@Icons.Material.Filled.Email">SMTP configuration</MudNavLink>
+            </AuthorizeView>
+        </Authorized>
+    </AuthorizeView>
 </MudNavMenu>
+
+        </div>
+    }
+    <SidebarAccount User="User" />
+</div>
+@code
+{
+    [Parameter]
+    public bool ShowNavigation { get; set; } = true;
+
+    [Parameter]
+    public AppUser? User { get; set; }
+}

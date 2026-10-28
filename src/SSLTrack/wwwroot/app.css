@@ -1,20 +1,138 @@
-/*
-	This CSS file matches the color scheme from MudBlazor to Bootstrap when utilized for authentication.
-	The file remains available at all times for demonstration purposes,
-	but it is exclusively employed in the 'App.razor' component when authentication is enabled.
-*/
-
-.btn-primary {
-    text-transform: uppercase;
-    --bs-btn-bg: var(--mud-palette-primary) !important;
-    --bs-btn-hover-bg: var(--mud-palette-primary-darken) !important;
+.hangfire-frame {
+    display: block;
+    width: 100%;
+    min-height: 640px;
+    margin-top: 10px;
+    border: 0;
+    overflow: hidden
 }
 
-.nav-pills {
-    --bs-nav-pills-link-active-bg: var(--mud-palette-primary) !important;
+.account-panel {
+    max-width: 760px;
+    margin: 24px auto 48px;
+    padding: 32px
 }
 
-.nav {
-    --bs-nav-link-color: var(--mud-palette-primary) !important;
-    --bs-nav-link-hover-color: var(--mud-palette-primary-darken) !important;
+.account-panel-narrow {
+    max-width: 480px
+}
+
+.account-panel-wide {
+    max-width: 1120px
+}
+
+.account-intro {
+    margin: 12px 0 24px;
+    line-height: 1.6;
+    max-width: 70ch
+}
+
+h1[tabindex="-1"]:focus {
+    outline: none
+}
+
+.monitoring-sidebar .mud-drawer-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    width: 100%
+}
+
+.sidebar-navigation {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto
+}
+
+.sidebar-account {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    flex-shrink: 0;
+    height: var(--ssltrack-footer-height);
+    min-height: var(--ssltrack-footer-height);
+    padding: 0 12px;
+    box-sizing: border-box;
+    border-top: 1px solid var(--mud-palette-lines-default)
+}
+
+.sidebar-profile {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    min-width: 0
+}
+
+.sidebar-account > form {
+    flex-shrink: 0
+}
+
+.sidebar-signout {
+    width: 44px;
+    height: 44px
+}
+
+.ssltrack-main-content {
+    background: var(--mud-palette-background);
+    box-sizing: border-box;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: calc(var(--mud-appbar-height) * 7 / 8 + 16px) 16px calc(var(--ssltrack-footer-height) + 16px)
+}
+
+@media (orientation: landscape) and (max-width: 599.98px) {
+    .ssltrack-main-content {
+        padding-top: calc(var(--mud-appbar-height) * 3 / 4 + 16px)
+    }
+}
+
+@media (min-width: 600px) {
+    .ssltrack-main-content {
+        padding-top: calc(var(--mud-appbar-height) + 16px)
+    }
+}
+
+.ssltrack-layout {
+    --ssltrack-footer-height: 48px
+}
+
+.app-footer, .app-footer .mud-toolbar {
+    height: var(--ssltrack-footer-height);
+    min-height: var(--ssltrack-footer-height)
+}
+
+@media(max-width:600px) {
+    .account-panel {
+        margin: 8px 0 24px;
+        padding: 20px
+    }
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0
+}
+
+.profile-avatar-small {
+    width: 32px;
+    height: 32px
+}
+
+.sidebar-profile-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
 }

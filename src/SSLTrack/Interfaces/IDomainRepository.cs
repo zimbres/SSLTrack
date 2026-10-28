@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Interfaces;
+namespace SSLTrack.Interfaces;
 
 public interface IDomainRepository : IRepository<Domain>
 {

@@ -1,0 +1,34 @@
+@inject AuthenticationStateProvider AuthenticationState
+@inject AccountService Accounts
+<AuthorizeView>
+    <Authorized Context="session">
+        <div class="sidebar-account">
+            <MudLink Class="sidebar-profile" Href="/profile" Underline="Underline.None" Color="Color.Inherit">
+                @if (account is not null)
+                {
+                    <ProfilePicture User="account" Small="true" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" />
+                }
+                <MudText Typo="Typo.subtitle2" Class="sidebar-profile-text">@(account?.DisplayName ?? session.User.Identity?.Name)</MudText>
+            </MudLink>
+            <form method="post" action="/account/logout" data-enhance="false">
+                <AntiforgeryToken />
+                <MudIconButton ButtonType="ButtonType.Submit" Class="sidebar-signout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" aria-label="Sign out" title="Sign out" />
+            </form>
+        </div>
+    </Authorized>
+</AuthorizeView>
+@code
+{
+    [Parameter]
+    public AppUser? User { get; set; }
+
+    private AppUser? account;
+    protected override async Task OnParametersSetAsync()
+    {
+        account = User ?? await Accounts.CurrentAsync((await AuthenticationState.GetAuthenticationStateAsync()).User, true);
+    }
+}

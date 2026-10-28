@@ -1,17 +1,17 @@
-﻿namespace SSLTrack.Services;
+namespace SSLTrack.Services;
 
 public class DomainService
 {
     private readonly IDomainRepository _repository;
+    private readonly AccessGuard _access;
     private readonly MailService _mailService;
     private readonly Configurations _configurations;
     private readonly CertificateService _certificateDownloader;
     private DnsService _dnsService;
-
-    public DomainService(IDomainRepository repository, MailService mailService, IConfiguration configuration,
-        CertificateService certificateDownloader, DnsService dnsService)
+    public DomainService(IDomainRepository repository, MailService mailService, IConfiguration configuration, CertificateService certificateDownloader, DnsService dnsService, AccessGuard access)
     {
         _repository = repository;
+        _access = access;
         _mailService = mailService;
         _configurations = configuration.GetSection("Configurations").Get<Configurations>()!;
         _certificateDownloader = certificateDownloader;
@@ -20,16 +20,19 @@ public class DomainService
 
     public async Task<IEnumerable<Domain>> GetDomains()
     {
+        await _access.RequireHumanAsync();
         return await _repository.GetAll();
     }
 
     public async Task<IEnumerable<Domain>> GetDomain(string domainName)
     {
+        await _access.RequireHumanAsync();
         return await _repository.Search(r => r.DomainName == domainName);
     }
 
     public async Task<IEnumerable<Domain>> GetDomains(int agent)
     {
+        await _access.RequireHumanAsync();
         return await _repository.Search(r => r.Agent == agent);
     }
 
@@ -39,14 +42,19 @@ public class DomainService
         if (ip is not null)
         {
             var isPrivate = ip.FirstOrDefault().IsPrivateIp();
-            if (!isPrivate) return true;
+            if (!isPrivate)
+            {
+                return true;
+            }
         }
+
         return false;
     }
 
     public async Task<Domain> AddDomain(string domainName, int port, string? issuer = null, DateTime? expirationDate = null, Agent? agent = null)
     {
-        if (issuer is not null || agent.Id != 0)
+        await _access.RequireAdminAsync();
+        if (issuer is not null || (agent?.Id ?? 0) != 0)
         {
             var domain = new Domain
             {
@@ -56,7 +64,7 @@ public class DomainService
                 Issuer = issuer,
                 ExpiryDate = expirationDate ?? DateTime.Today,
                 LastChecked = expirationDate ?? DateTime.Today,
-                Agent = agent.Id,
+                Agent = agent?.Id ?? 0,
                 PublicPrefix = false,
             };
             var result = await _repository.Add(domain);
@@ -65,6 +73,7 @@ public class DomainService
                 return await _repository.GetOne();
             }
         }
+
         var certificate = await _certificateDownloader.GetCertificateAsync(domainName, port);
         if (certificate is not null)
         {
@@ -85,11 +94,13 @@ public class DomainService
                 return await _repository.GetOne();
             }
         }
+
         return null!;
     }
 
     public async Task<bool> UpdateDomain(string domainName, Domain domain)
     {
+        await _access.RequireAdminAsync();
         try
         {
             await _repository.Update(domain);
@@ -105,6 +116,7 @@ public class DomainService
                 throw;
             }
         }
+
         return true;
     }
 
@@ -115,6 +127,7 @@ public class DomainService
         {
             return true;
         }
+
         return false;
     }
 
@@ -126,13 +139,21 @@ public class DomainService
 
     public async Task<bool> DeleteDomain(int domainId)
     {
+        await _access.RequireAdminAsync();
         var domain = await _repository.Search(r => r.Id == domainId);
         if (!domain.Any())
         {
             return false;
         }
+
         await _repository.Remove(domain.First().Id);
         return true;
+    }
+
+    public async Task UpdateAllDomainsForUser()
+    {
+        await _access.RequireAdminAsync();
+        await UpdateAllDomains();
     }
 
     public async Task UpdateAllDomains()
@@ -141,7 +162,9 @@ public class DomainService
         foreach (var domain in domains)
         {
             if (domain.Agent != 0)
+            {
                 continue;
+            }
 
             var certificate = await _certificateDownloader.GetCertificateAsync(domain.DomainName, domain.Port);
             if (certificate is not null)
@@ -171,13 +194,16 @@ public class DomainService
         foreach (var domain in domains)
         {
             if (!_configurations.AlertsEnabled)
+            {
                 continue;
+            }
 
             if (domain.Silenced)
+            {
                 continue;
+            }
 
             var now = DateTime.Now;
-
             if (domain.ExpiryDate < now)
             {
                 _mailService.Subject = $"Certificate for domain {domain.DomainName.ToUpper()} has expired!";

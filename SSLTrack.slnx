@@ -14,4 +14,5 @@
   </Folder>
   <Project Path="src/SSLTrack/SSLTrack.csproj" />
   <Project Path="src/SSLTrackAgent/SSLTrackAgent.csproj" />
+  <Folder Name="/Tests/"><Project Path="tests/SSLTrack.Tests/SSLTrack.Tests.csproj" /></Folder>
 </Solution>

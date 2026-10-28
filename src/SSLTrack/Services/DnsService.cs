@@ -1,14 +1,12 @@
-﻿namespace SSLTrack.Services;
+namespace SSLTrack.Services;
 
 public class DnsService
 {
     private readonly ILogger<DnsService> _logger;
-
     public DnsService(ILogger<DnsService> logger)
     {
         _logger = logger;
     }
-
 
     public async Task<IEnumerable<IPAddress>> GetIpAddress(string domainName)
     {

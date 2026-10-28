@@ -1,11 +1,10 @@
-﻿namespace SSLTrackAgent.Services;
+namespace SSLTrackAgent.Services;
 
 public class CertificateService
 {
     private readonly ILogger<CertificateService> _logger;
     private readonly RemoteCertificateValidationCallback _remoteCertificate = (_, _, _, _) => true;
     private readonly LogService _logService;
-
     public CertificateService(ILogger<CertificateService> logger, LogService logService)
     {
         _logger = logger;
@@ -30,6 +29,7 @@ public class CertificateService
             await _logService.PushLog(ex.Message, domain);
             _logger.LogError("Error on connection to address {address} on port {port}. {ex}", domain, port, ex);
         }
+
         return null!;
     }
 }

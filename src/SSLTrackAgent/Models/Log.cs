@@ -1,9 +1,21 @@
-﻿namespace SSLTrackAgent.Models;
+namespace SSLTrackAgent.Models;
 
 public class Log
 {
-    public int Agent { get; set; }
-    public string Domain { get; set; }
-    public DateTime DateTime { get; set; }
-    public string Message { get; set; }
+    public int Agent
+    {
+        get; set;
+    }
+    public string Domain
+    {
+        get; set;
+    }
+    public DateTime DateTime
+    {
+        get; set;
+    }
+    public string Message
+    {
+        get; set;
+    }
 }

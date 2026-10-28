@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,24 +10,39 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 	
 	
+    <link href="app.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="favicon.ico" />
-    <HeadOutlet @rendermode="@InteractiveServer" />
+    <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 
 <body>
     <script suppress-error="BL9992">
+        window.sslTrack = { setThemeCookie: function (dark) { document.cookie = "isDarkMode=" + dark + ";path=/;max-age=31536000;SameSite=Lax"; } };
         (function () {
-            try {
+            try
+            {
                 var v = localStorage.getItem('isDarkMode');
-                if (v !== null) {
+                if (v !== null)
+                {
                     document.cookie = 'isDarkMode=' + JSON.parse(v) + ';path=/;max-age=31536000;SameSite=Lax';
                 }
-            } catch (e) { }
+            }
+            catch (e)
+            {
+            }
         })();
     </script>
-    <Routes @rendermode="@InteractiveServer" />
+    <script src="js/hangfire-frame.js"></script>
+    <Routes @rendermode="PageRenderMode" />
     <script src="_framework/blazor.web.js"></script>
 	<script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>
+
+@code
+{
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+    private IComponentRenderMode? PageRenderMode => HttpContext.User.Identity?.IsAuthenticated == true ? InteractiveServer : null;
+}

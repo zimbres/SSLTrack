@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Extensions;
+namespace SSLTrack.Extensions;
 
 public static class Expiration
 {
@@ -8,6 +8,7 @@ public static class Expiration
         {
             return true;
         }
+
         return false;
     }
 }

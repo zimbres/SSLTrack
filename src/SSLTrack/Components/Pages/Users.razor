@@ -1,0 +1,82 @@
+@inject AccessGuard Access
+@page "/users"
+@attribute [Authorize(Policy="Admin")]
+@inject AccountService Accounts
+<MudCard Class="account-panel account-panel-wide">
+    <MudText Typo="Typo.h4" HtmlTag="h1">Users</MudText>
+    <MudText Class="account-intro">Create accounts before people sign in. Admins manage SSLTrack; ReadOnly users view monitoring data.</MudText>
+    <AccountNotice />
+    <MudCheckBox T="bool" @bind-Value="ShowDisabled" Label="Show disabled users" Color="Color.Primary" Class="my-4" />
+    <MudTable T="UserEdit" Items="users.Where(x => ShowDisabled || x.Enabled)" Hover="true" Elevation="0" Breakpoint="Breakpoint.Sm" aria-label="Human user accounts">
+        <HeaderContent>
+            <MudTh>Email</MudTh><MudTh>Name</MudTh><MudTh>Role</MudTh><MudTh>Sign-in</MudTh><MudTh>Status</MudTh><MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Name">@context.DisplayName</MudTd>
+            <MudTd DataLabel="Role">@context.Role</MudTd>
+            <MudTd DataLabel="Sign-in">@context.AuthenticationType</MudTd>
+            <MudTd DataLabel="Status">@(context.Enabled ? "Enabled" : "Disabled")@(context.RequirePasswordChange ? " · Password change required" : "")</MudTd>
+            <MudTd DataLabel="Actions"><MudButton Href="@($"/users?edit={context.Id}{(ShowDisabled ? "&showDisabled=true" : "")}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small">Edit</MudButton></MudTd>
+        </RowTemplate>
+        <PagerContent><MudTablePager /></PagerContent>
+    </MudTable>
+    <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-8 mb-4">
+        <MudText Typo="Typo.h6" HtmlTag="h2">@(edit.Id == 0 ? "Create user" : "Edit user")</MudText>
+        @if (edit.Id != 0)
+        {
+            <MudLink Href="@(ShowDisabled ? "/users?showDisabled=true" : "/users")">Create another user</MudLink>
+        }
+    </MudStack>
+    <form @key="edit.Id" method="post" action="/account/users" data-enhance="false">
+        <AntiforgeryToken /><input type="hidden" name="Id" value="@edit.Id" />
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6"><MudTextField T="string" @bind-Value="edit.Email" name="Email" Label="Email" InputType="InputType.Email" ReadOnly="@(edit.Id != 0)" Required="true" MaxLength="254" Variant="Variant.Outlined" autocomplete="off" /></MudItem>
+            <MudItem xs="12" sm="6"><MudTextField T="string" @bind-Value="edit.DisplayName" name="DisplayName" Label="Display name" Required="true" MaxLength="100" Variant="Variant.Outlined" /></MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="edit.Role" Label="Role" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("ReadOnly")">ReadOnly</MudSelectItem><MudSelectItem Value="@("Admin")">Admin</MudSelectItem>
+                </MudSelect><input type="hidden" name="Role" value="@edit.Role" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="edit.AuthenticationType" Label="Sign-in method" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("Local")">Local password</MudSelectItem><MudSelectItem Value="@("Oidc")">OIDC</MudSelectItem>
+                </MudSelect><input type="hidden" name="AuthenticationType" value="@edit.AuthenticationType" />
+            </MudItem>
+            <MudItem xs="12"><MudTextField T="string" @bind-Value="password" name="password" Label="Set or reset local password" InputType="InputType.Password" Variant="Variant.Outlined" MaxLength="128" minlength="12" autocomplete="new-password" HelperText="Required for a new local account. Leave blank to keep the current password. Ignored for OIDC accounts." /></MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="bool" @bind-Value="edit.Enabled" Label="Account status" Variant="Variant.Outlined">
+                    <MudSelectItem T="bool" Value="true">Enabled</MudSelectItem><MudSelectItem T="bool" Value="false">Disabled</MudSelectItem>
+                </MudSelect><input type="hidden" name="Enabled" value="@edit.Enabled.ToString()" />
+            </MudItem>
+            <MudItem xs="12" sm="6"><MudCheckBox T="bool" @bind-Value="edit.RequirePasswordChange" Label="Require password change at next sign-in" Color="Color.Primary" /><input type="hidden" name="RequirePasswordChange" value="@edit.RequirePasswordChange.ToString()" /></MudItem>
+            <MudItem xs="12"><MudText Typo="Typo.body2">Disabled users cannot sign in, and their existing sessions are revoked. Password changes apply to local accounts. OIDC users need a verified email matching this account. Changing an account signs out its existing sessions.</MudText></MudItem>
+            <MudItem xs="12"><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@(edit.Id == 0 ? "Create user" : "Save user")</MudButton></MudItem>
+        </MudGrid>
+    </form>
+</MudCard>
+@code
+{
+    [SupplyParameterFromQuery(Name = "showDisabled")]
+    public bool ShowDisabled { get; set; }
+
+    [SupplyParameterFromQuery(Name = "edit")]
+    public int? EditId { get; set; }
+
+    private List<UserEdit> users = new();
+    private UserEdit edit = new()
+    {
+        RequirePasswordChange = true
+    };
+    private string? password;
+    protected override async Task OnParametersSetAsync()
+    {
+        await Access.RequireAdminAsync();
+        users = await Accounts.ListAsync();
+        edit = users.FirstOrDefault(x => x.Id == EditId) ?? new UserEdit
+        {
+            RequirePasswordChange = true
+        };
+        password = null;
+    }
+}

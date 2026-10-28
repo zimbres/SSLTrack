@@ -1,6 +1,8 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+            <NotAuthorized><LayoutView Layout="@typeof(Layout.MainLayout)"><MudAlert Severity="Severity.Warning">Your session does not allow this page. <a href="/login" data-enhance-nav="false">Sign in</a></MudAlert></LayoutView></NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>

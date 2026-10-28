@@ -1,4 +1,4 @@
-﻿@inject AgentService AgentService
+@inject AgentService AgentService
 
 <MudDialog>
     <DialogContent>
@@ -31,14 +31,14 @@
     </DialogContent>
 </MudDialog>
 
-@code {
-    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+@code
+{
+    [CascadingParameter]
+    IMudDialogInstance? MudDialog { get; set; }
 
     private bool _processing = false;
     private bool _exists = false;
-
     AgentForm model = new AgentForm();
-
     public class AgentForm
     {
         [Required]
@@ -54,6 +54,7 @@
             _exists = true;
             return;
         }
+
         var agent = await AgentService.AddAgent(model.Name);
         MudDialog.Close(DialogResult.Ok(agent));
     }

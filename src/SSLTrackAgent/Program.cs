@@ -1,5 +1,4 @@
 var builder = Host.CreateApplicationBuilder(args);
-
 builder.AddServiceDefaults();
 builder.Services.Configure<HttpClientConfiguration>(builder.Configuration.GetSection(nameof(HttpClientConfiguration)));
 builder.Services.AddConfiguredHttpClient();
@@ -13,6 +12,5 @@ builder.Services.AddHostedService<Worker>().Configure<HostOptions>(options =>
 {
     options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
 });
-
 var host = builder.Build();
 host.Run();

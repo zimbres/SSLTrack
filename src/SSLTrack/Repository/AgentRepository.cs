@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Repository;
+namespace SSLTrack.Repository;
 
 public class AgentRepository : Repository<Agent>, IAgentRepository
 {

@@ -1,0 +1,39 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@inject IConfiguration Configuration
+<PageTitle>Sign in · SSLTrack</PageTitle>
+<MudCard Class="account-panel account-panel-narrow">
+    <MudText Typo="Typo.h4" HtmlTag="h1">Sign in to SSLTrack</MudText>
+    <MudText Class="account-intro">Monitor certificates with your organization’s account.</MudText>
+    <AccountNotice />
+    @if (Error == "oidc")
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">Access denied. Your verified OIDC identity must match an enabled, pre-created SSLTrack user. Ask an administrator to check your account.</MudAlert>
+    }
+    @if (Error == "credentials")
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">Email or password is incorrect, or the account is unavailable. After repeated failures, wait 15 minutes and try again.</MudAlert>
+    }
+    <form method="post" action="/account/login" data-enhance="false">
+        <AntiforgeryToken /><input type="hidden" name="returnUrl" value="@ReturnUrl" />
+        <MudStack Spacing="3">
+            <MudTextField T="string" name="email" Label="Email" ShrinkLabel="true" InputType="InputType.Email" autocomplete="username" Required="true" MaxLength="254" Variant="Variant.Outlined" AutoFocus="true" />
+            <MudTextField T="string" name="password" Label="Password" ShrinkLabel="true" InputType="InputType.Password" autocomplete="current-password" Required="true" MaxLength="128" Variant="Variant.Outlined" />
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
+        </MudStack>
+    </form>
+    @if (Configuration.GetValue<bool>("Authentication:Oidc:Enabled"))
+    {
+        <MudDivider Class="my-5" />
+        <MudButton Href="@($"/account/oidc?returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}")" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" data-enhance-nav="false">Sign in with your organization</MudButton>
+    }
+    <MudText Typo="Typo.body2" Class="mt-4">Access is granted by your administrator. Contact them if you need an account.</MudText>
+</MudCard>
+@code
+{
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+}

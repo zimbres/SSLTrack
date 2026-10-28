@@ -1,4 +1,4 @@
-﻿@inject DomainService DomainService
+@inject DomainService DomainService
 
 <MudDialog>
     <DialogContent>
@@ -60,34 +60,42 @@
     </DialogContent>
 </MudDialog>
 
-@code {
-    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+@code
+{
+    [CascadingParameter]
+    IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
     public List<Agent> Agents { get; set; }
-
     private Agent agent { get; set; }
 
     private bool _processing = false;
     private bool _exists = false;
     private bool _manual = false;
-
-    private IReadOnlyCollection<Agent> options { get; set; } = new HashSet<Agent> { new Agent() { Name = "Local" } };
+    private IReadOnlyCollection<Agent> options { get; set; } = new HashSet<Agent>
+    {
+        new Agent()
+        {
+            Name = "Local"
+        }
+    };
 
     DomainForm model = new DomainForm();
-
     public class DomainForm
     {
         [Required]
         public string? Domain { get; set; }
+
         [Required]
         public string Port { get; set; } = "443";
         public string Issuer { get; set; }
         public DateTime? ExpirationDate { get; set; } = DateTime.Today;
     }
 
-    private List<string> SuppressedAgents = new() { "Manual" };
-
+    private List<string> SuppressedAgents = new()
+    {
+        "Manual"
+    };
     private bool ShouldIncludeAgent(Agent agent)
     {
         return !SuppressedAgents.Contains(agent.Name);
@@ -102,10 +110,12 @@
             _exists = true;
             return;
         }
+
         if (_manual)
         {
             agent.Id = 1;
         }
+
         var domain = await DomainService.AddDomain(model.Domain.Trim(), int.Parse(model.Port.Trim()), model.Issuer, model.ExpirationDate, agent);
         MudDialog.Close(DialogResult.Ok(domain));
     }

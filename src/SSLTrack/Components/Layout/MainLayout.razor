@@ -1,43 +1,44 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JS
 
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" @rendermode="InteractiveServer" />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <PageTitle>SSLTrack - SSL Certificates Monitoring</PageTitle>
 
-<MudLayout>
+<MudLayout Class="ssltrack-layout">
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <AuthorizeView><MudIconButton aria-label="Toggle navigation" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" /></AuthorizeView>
         <MudIcon Icon="@Icons.Material.Outlined.Lock" />
         <MudText Typo="Typo.h5" Class="ml-3">SSLTrack</MudText>
         <MudSpacer />
-        <MudSwitch T="bool" Label="Light/Dark" Class="ma-4" Color="Color.Primary" Value="@_isDarkMode" ValueChanged="OnThemeChanged" />
+        <AuthorizeView><MudSwitch T="bool" Label="Light/Dark" Class="ma-4" Color="Color.Primary" Value="@_isDarkMode" ValueChanged="OnThemeChanged" /></AuthorizeView>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4 mb-16">
+    <AuthorizeView Context="session"><MudDrawer Class="monitoring-sidebar" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu ShowNavigation="@(!session.User.HasClaim("password_change", "True"))" />
+    </MudDrawer></AuthorizeView>
+    <MudMainContent Class="ssltrack-main-content">
         @Body
     </MudMainContent>
-    <MudAppBar Elevation="1" Bottom="true" Dense="true" Fixed="true" Style="z-index: 1000;">
+    <MudAppBar Class="app-footer" Elevation="1" Bottom="true" Dense="true" Fixed="true" Style="z-index: 1000;">
         <MudGrid Justify="Justify.Center">
             <MudItem>
-                <a href="https://github.com/zimbres/SSLTrack" target="_blank">
+                <MudLink Href="https://github.com/zimbres/SSLTrack" Target="_blank" Color="Color.Inherit" Underline="Underline.None">
                     <MudIcon Icon="@Icons.Custom.Brands.GitHub" Title="GitHub" />
-                </a>
+                </MudLink>
             </MudItem>
         </MudGrid>
     </MudAppBar>
 </MudLayout>
 
-@code {
+@code
+{
     private bool _drawerOpen = true;
     private MudTheme _theme = new();
     private bool _isDarkMode;
-
     protected override void OnInitialized()
     {
         var cookie = HttpContextAccessor.HttpContext?.Request.Cookies["isDarkMode"];
@@ -51,14 +52,17 @@
     {
         if (firstRender)
         {
-            if (string.IsNullOrEmpty(await localStorage.GetItemAsync<string>("isDarkMode")))
+            var stored = await localStorage.GetItemAsync<bool?>("isDarkMode");
+            if (stored is null)
             {
-                await localStorage.SetItemAsync("isDarkMode", _isDarkMode);
+                stored = _isDarkMode;
+                await localStorage.SetItemAsync("isDarkMode", stored.Value);
             }
-            var stored = bool.Parse(await localStorage.GetItemAsync<string>("isDarkMode"));
-            if (stored != _isDarkMode)
+
+            await JS.InvokeVoidAsync("sslTrack.setThemeCookie", stored.Value);
+            if (stored.Value != _isDarkMode)
             {
-                _isDarkMode = stored;
+                _isDarkMode = stored.Value;
                 StateHasChanged();
             }
         }
@@ -68,6 +72,7 @@
     {
         _isDarkMode = value;
         await localStorage.SetItemAsync("isDarkMode", value);
+        await JS.InvokeVoidAsync("sslTrack.setThemeCookie", value);
     }
 
     private void DrawerToggle()

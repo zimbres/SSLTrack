@@ -1,29 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-
 #nullable disable
-
 namespace SSLTrack.Migrations
 {
-    /// <inheritdoc />
+    /// <inheritdoc/>
     public partial class PublicPrefix : Migration
     {
-        /// <inheritdoc />
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "PublicPrefix",
-                table: "Domains",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: false);
+            migrationBuilder.AddColumn<bool>(name: "PublicPrefix", table: "Domains", type: "INTEGER", nullable: false, defaultValue: false);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "PublicPrefix",
-                table: "Domains");
+            migrationBuilder.DropColumn(name: "PublicPrefix", table: "Domains");
         }
     }
 }

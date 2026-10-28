@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Data.Mappings;
+namespace SSLTrack.Data.Mappings;
 
 public class DomainMappings : IEntityTypeConfiguration<Domain>
 {
@@ -15,7 +15,6 @@ public class DomainMappings : IEntityTypeConfiguration<Domain>
         builder.Property(e => e.Agent);
         builder.Property(e => e.Silenced);
         builder.Property(e => e.PublicPrefix);
-
         builder.HasIndex(e => e.DomainName);
     }
 }

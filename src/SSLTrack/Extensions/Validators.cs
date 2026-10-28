@@ -1,4 +1,4 @@
-﻿namespace SSLTrack.Extensions;
+namespace SSLTrack.Extensions;
 
 public static class Validators
 {
@@ -8,10 +8,12 @@ public static class Validators
         {
             return false;
         }
+
         if (domainDb.Where(d => d.DomainName == domain).Where(d => d.Port == port).Where(d => d.Agent == agentId).Any())
         {
             return true;
         }
+
         return false;
     }
 
@@ -21,10 +23,12 @@ public static class Validators
         {
             return false;
         }
+
         if (agentDb.First().Name == agentName)
         {
             return true;
         }
+
         return false;
     }
 }
