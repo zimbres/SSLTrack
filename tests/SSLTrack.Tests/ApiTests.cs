@@ -10,10 +10,27 @@ public class ApiTests : IDisposable
         {
             o.ValidateScopes = true;
             o.ValidateOnBuild = true;
-        }).ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Data"] = $"Data Source={file}", ["Authentication:AllowInsecureBasicForTesting"] = "true" })));
+        }).ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Data"] = $"Data Source={file}", ["Authentication:AllowInsecureBasicForTesting"] = "true", ["Authentication:Bootstrap:Email"] = "", ["Authentication:Bootstrap:Password"] = "" })));
     }
 
     private HttpClient Client() => app.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
+
+    [Theory]
+    [InlineData("/users")]
+    [InlineData("/service-accounts")]
+    [InlineData("/notifications")]
+    [InlineData("/profile")]
+    public async Task Management_forms_do_not_navigate_to_http_post_endpoints(string page)
+    {
+        await Seed();
+        using var client = Client();
+        await Login(client, "admin@example.com");
+        var html = await client.GetStringAsync(page);
+        var forms = Regex.Matches(html, "<form\\b[^>]*>");
+        Assert.NotEmpty(forms);
+        Assert.DoesNotContain(forms.Cast<Match>(), form =>
+            Regex.IsMatch(form.Value, "action=\"/account/(users|service-accounts|smtp|profile)(/[^\"]*)?\""));
+    }
     private async Task Seed()
     {
         _ = app.Server;

@@ -2,6 +2,7 @@
 @page "/users"
 @attribute [Authorize(Policy="Admin")]
 @inject AccountService Accounts
+@inject NavigationManager Navigation
 <MudCard Class="account-panel account-panel-wide">
     <MudText Typo="Typo.h4" HtmlTag="h1">Users</MudText>
     <MudText Class="account-intro">Create accounts before people sign in. Admins manage SSLTrack; ReadOnly users view monitoring data.</MudText>
@@ -28,7 +29,7 @@
             <MudLink Href="@(ShowDisabled ? "/users?showDisabled=true" : "/users")">Create another user</MudLink>
         }
     </MudStack>
-    <form @key="edit.Id" method="post" action="/account/users" data-enhance="false">
+    <AccountForm OnSubmit="SaveAsync">
         <AntiforgeryToken /><input type="hidden" name="Id" value="@edit.Id" />
         <MudGrid Spacing="3">
             <MudItem xs="12" sm="6"><MudTextField T="string" @bind-Value="edit.Email" name="Email" Label="Email" InputType="InputType.Email" ReadOnly="@(edit.Id != 0)" Required="true" MaxLength="254" Variant="Variant.Outlined" autocomplete="off" /></MudItem>
@@ -53,7 +54,7 @@
             <MudItem xs="12"><MudText Typo="Typo.body2">Disabled users cannot sign in, and their existing sessions are revoked. Password changes apply to local accounts. OIDC users need a verified email matching this account. Changing an account signs out its existing sessions.</MudText></MudItem>
             <MudItem xs="12"><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@(edit.Id == 0 ? "Create user" : "Save user")</MudButton></MudItem>
         </MudGrid>
-    </form>
+    </AccountForm>
 </MudCard>
 @code
 {
@@ -69,6 +70,19 @@
         RequirePasswordChange = true
     };
     private string? password;
+    private async Task SaveAsync(AppUser current)
+    {
+        await Accounts.SaveAsync(edit, password);
+        password = null;
+        if (edit.Id == current.Id)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+        EditId = null;
+        await OnParametersSetAsync();
+        Navigation.NavigateTo(ShowDisabled ? "/users?showDisabled=true" : "/users", replace: true);
+    }
     protected override async Task OnParametersSetAsync()
     {
         await Access.RequireAdminAsync();

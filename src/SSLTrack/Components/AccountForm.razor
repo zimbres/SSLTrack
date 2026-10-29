@@ -1,0 +1,57 @@
+@inject AccessGuard Access
+@inject ILogger<AccountForm> Logger
+
+@if (error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="my-4" role="alert">@error</MudAlert>
+}
+@if (saved)
+{
+    <MudAlert Severity="Severity.Success" Class="my-4" role="status">@SuccessMessage</MudAlert>
+}
+<form @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <fieldset @key="successfulSubmissions" disabled="@busy" style="border:0;padding:0;margin:0;min-width:0" aria-busy="@busy.ToString().ToLowerInvariant()">
+        @ChildContent
+    </fieldset>
+</form>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<AppUser> OnSubmit { get; set; }
+    [Parameter] public bool RequireAdmin { get; set; } = true;
+    [Parameter] public string SuccessMessage { get; set; } = "Changes saved.";
+
+    private bool busy;
+    private bool saved;
+    private string? error;
+    private int successfulSubmissions;
+
+    private async Task SubmitAsync()
+    {
+        if (busy) return;
+        busy = true;
+        saved = false;
+        error = null;
+        try
+        {
+            var user = RequireAdmin ? await Access.RequireAdminAsync() : await Access.RequireHumanAsync();
+            await OnSubmit.InvokeAsync(user);
+            // Recreate inputs so cleared values do not retain touched/validation state.
+            successfulSubmissions++;
+            saved = true;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ValidationException or UnauthorizedAccessException)
+        {
+            error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Account form submission failed.");
+            error = "The operation failed. Please try again.";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

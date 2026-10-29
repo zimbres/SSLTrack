@@ -27,6 +27,10 @@
     max-width: 70ch
 }
 
+.account-panel-wide .account-intro {
+    max-width: none
+}
+
 h1[tabindex="-1"]:focus {
     outline: none
 }

@@ -2,6 +2,7 @@ namespace SSLTrack.Services;
 // Persistence/admission primitive. Browser management calls are guarded by AccountController.
 public sealed class AccountService(IDbContextFactory<ApplicationDbContext> factory)
 {
+    public event Action<AppUser>? ProfileUpdated;
     private static readonly PasswordHasher<AppUser> Hasher = new();
     private static readonly string DummyHash = Hasher.HashPassword(new(), "unusable-dummy-password");
     public static string Normalize(string email) => email.Trim().ToUpperInvariant();
@@ -221,6 +222,7 @@ public sealed class AccountService(IDbContextFactory<ApplicationDbContext> facto
         user.AvatarType = avatarType;
         user.AvatarUrl = avatarType == "Custom" ? avatarUrl : null;
         await db.SaveChangesAsync();
+        ProfileUpdated?.Invoke(user);
     }
 
     public static ClaimsPrincipal Principal(AppUser user) => new(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Email), new Claim("user_id", user.Id.ToString()), new Claim(ClaimTypes.Name, user.DisplayName), new Claim(ClaimTypes.Email, user.Email), new Claim(ClaimTypes.Role, user.Role), new Claim("stamp", user.SecurityStamp), new Claim("kind", "human"), new Claim("session_expires", DateTimeOffset.UtcNow.AddHours(8).ToUnixTimeSeconds().ToString()), new Claim("password_change", user.RequirePasswordChange.ToString()) }, AuthSetup.Cookie));

@@ -1,6 +1,7 @@
 @page "/profile"
 @attribute [Authorize(Policy="Human")]
 @inject AccessGuard Access
+@inject AccountService Accounts
 <MudCard Class="account-panel">
     <MudText Typo="Typo.h4" HtmlTag="h1">Your profile</MudText>
     <MudText Class="account-intro">Manage your display name, picture, and password.</MudText>
@@ -11,7 +12,7 @@
             <ProfilePicture User="user" />
             <MudStack Spacing="1"><MudText Typo="Typo.subtitle1">@user.Email</MudText><MudText Typo="Typo.body2">@user.Role · @user.AuthenticationType sign-in</MudText></MudStack>
         </MudStack>
-        <form method="post" action="/account/profile" data-enhance="false">
+        <AccountForm RequireAdmin="false" OnSubmit="SaveAsync">
             <AntiforgeryToken />
             <MudStack Spacing="3">
                 <MudTextField T="string" @bind-Value="user.DisplayName" name="displayName" Label="Display name" Required="true" MaxLength="100" Variant="Variant.Outlined" autocomplete="name" />
@@ -21,7 +22,7 @@
                 <MudTextField T="string" @bind-Value="user.AvatarUrl" name="avatarUrl" Label="Custom picture URL" InputType="InputType.Url" Placeholder="https://…" MaxLength="2048" Variant="Variant.Outlined" HelperText="Custom pictures must use HTTPS. Selecting Gravatar loads a picture from Gravatar using a hash of your email address. External pictures may reveal your IP address to their host." />
                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save profile</MudButton>
             </MudStack>
-        </form>
+        </AccountForm>
         <MudDivider Class="my-8" /><MudText Typo="Typo.h6" HtmlTag="h2" GutterBottom="true">Sign-in security</MudText>
         @if (user.AuthenticationType == "Local")
         {
@@ -37,6 +38,11 @@
 @code
 {
     private AppUser? user;
+    private async Task SaveAsync(AppUser current)
+    {
+        await Accounts.UpdateProfileAsync(current.Id, user!.DisplayName, user.AvatarType, user.AvatarUrl);
+        user = await Access.RequireHumanAsync();
+    }
     protected override async Task OnInitializedAsync()
     {
         user = await Access.RequireHumanAsync();

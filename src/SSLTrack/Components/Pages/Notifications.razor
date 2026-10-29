@@ -2,11 +2,12 @@
 @page "/notifications"
 @attribute [Authorize(Policy = "Admin")]
 @inject SmtpSettingsService Settings
+@inject MailService Mail
 <MudCard Class="account-panel account-panel-wide">
     <MudText Typo="Typo.h4" HtmlTag="h1">SMTP configuration</MudText>
     <MudText Class="account-intro">Configure delivery for certificate alerts. Saved settings are used by the next notification.</MudText>
     <AccountNotice />
-    <form method="post" action="/account/smtp" data-enhance="false">
+    <AccountForm OnSubmit="SaveAsync">
         <AntiforgeryToken />
         <MudGrid Spacing="3">
             <MudItem xs="12" sm="6"><MudTextField T="string" @bind-Value="edit.Name" name="Name" Label="Sender name" MaxLength="100" Variant="Variant.Outlined" /></MudItem>
@@ -27,15 +28,33 @@
             <MudItem xs="12"><MudCheckBox T="bool" @bind-Value="edit.ClearPassword" Label="Clear saved SMTP password" Color="Color.Primary" /><input type="hidden" name="ClearPassword" value="@edit.ClearPassword.ToString()" /></MudItem>
             <MudItem xs="12"><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save SMTP configuration</MudButton></MudItem>
         </MudGrid>
-    </form>
+    </AccountForm>
     <MudDivider Class="my-8" />
     <MudText Typo="Typo.h6" HtmlTag="h2" GutterBottom="true">Test delivery</MudText>
     <MudText Class="mb-4">Save changes first. The test uses the saved configuration and recipients.</MudText>
-    <form method="post" action="/account/smtp/test" data-enhance="false"><AntiforgeryToken /><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send">Send test notification</MudButton></form>
+    <AccountForm OnSubmit="TestAsync" SuccessMessage="Test email sent successfully."><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send">Send test notification</MudButton></AccountForm>
 </MudCard>
 @code
 {
     private SmtpSettingsEdit edit = new();
+    private async Task SaveAsync()
+    {
+        await Settings.SaveAsync(edit);
+        edit = await Settings.GetForEditAsync();
+    }
+    private async Task TestAsync()
+    {
+        try
+        {
+            Mail.Subject = "SSLTrack notification test";
+            Mail.Body = "This is a test email from SSLTrack.";
+            await Mail.SendMailAsync();
+        }
+        catch (Exception)
+        {
+            throw new InvalidOperationException("Test email failed. Check SMTP settings and server logs.");
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         await Access.RequireAdminAsync();

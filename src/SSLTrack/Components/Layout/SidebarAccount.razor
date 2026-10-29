@@ -1,5 +1,6 @@
 @inject AuthenticationStateProvider AuthenticationState
 @inject AccountService Accounts
+@implements IDisposable
 <AuthorizeView>
     <Authorized Context="session">
         <div class="sidebar-account">
@@ -27,6 +28,17 @@
     public AppUser? User { get; set; }
 
     private AppUser? account;
+    protected override void OnInitialized() => Accounts.ProfileUpdated += OnProfileUpdated;
+
+    private void OnProfileUpdated(AppUser updated)
+    {
+        if (account?.Id != updated.Id) return;
+        account = updated;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Accounts.ProfileUpdated -= OnProfileUpdated;
+
     protected override async Task OnParametersSetAsync()
     {
         account = User ?? await Accounts.CurrentAsync((await AuthenticationState.GetAuthenticationStateAsync()).User, true);
