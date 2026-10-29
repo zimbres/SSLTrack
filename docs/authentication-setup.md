@@ -18,8 +18,24 @@ Configure these environment variables (or equivalent appsettings keys):
 | `Authentication__Oidc__Authority` | HTTPS issuer / discovery authority |
 | `Authentication__Oidc__ClientId` | Registered client ID |
 | `Authentication__Oidc__ClientSecret` | Client secret, supplied as a deployment secret |
+| `Authentication__Oidc__TrustedCaPath` | Optional path inside the container to a PEM file containing trusted OIDC CA certificates |
 
 Register `https://<your-ssltrack-host>/signin-oidc` as the provider callback. SSLTrack uses authorization code flow with PKCE and requests `openid profile email`. The validated ID token must include `email`, `email_verified=true`, and `sub`. Providers that do not supply a trusted verified email cannot admit users under this contract; configure their claim mapping accordingly.
+
+### Private CA or self-signed provider certificates
+
+For chiseled containers, mount the public CA certificate as a read-only PEM file; no shell or system trust-store installation is needed. Add the following to your SSLTrack service in Docker Compose:
+
+```yaml
+environment:
+  Authentication__Oidc__TrustedCaPath: /certs/oidc-ca.pem
+volumes:
+  - ./certs/oidc-ca.pem:/certs/oidc-ca.pem:ro
+```
+
+Use the issuing root CA certificate, or the provider's own public certificate if it is self-signed. Obtain it through a trusted channel and verify its fingerprint. Do not mount a private key. The PEM file can contain multiple trusted certificates for rotation. The provider must serve any required intermediate certificates.
+
+When configured, this file replaces system roots for OIDC backchannel HTTPS requests only (discovery, signing keys, and token exchange). Hostname, expiration, chain, and server-auth usage validation remain enabled; revocation checks are not performed. Other application HTTP clients keep their existing trust settings. An unset or blank path keeps standard system trust. A missing, unreadable, invalid, or empty certificate file stops startup when OIDC is enabled. Restart after replacing the certificate file. Browsers must separately trust the provider's certificate for the interactive sign-in redirect.
 
 An Admin must create each human user on **Users**, select **OIDC**, and enter the matching email before login. SSLTrack links the validated issuer/subject on first admission and rejects a different identity later. Changing the user's authentication type deliberately clears that link and invalidates sessions. Local users cannot sign in through OIDC implicitly. Unknown, disabled, unverified, or mismatched identities see an admission message. OIDC passwords are managed by the provider.
 

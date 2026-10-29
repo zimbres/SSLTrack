@@ -91,6 +91,8 @@ SSLTrack requires sign-in for the website and REST API. Before first startup, pr
 
 Local and service-account passwords must contain 12–128 characters. The bootstrap administrator must change their password on first sign-in. OIDC users must be created by an administrator before organization sign-in; SSLTrack requires a verified email and links the provider identity on first login. See the [OIDC setup and Keycloak example](docs/authentication-setup.md#oidc).
 
+For OIDC providers using a private CA or self-signed certificate, set `Authentication__Oidc__TrustedCaPath` to a mounted PEM certificate file. This works with chiseled containers without modifying the system trust store. See [private CA configuration](docs/authentication-setup.md#private-ca-or-self-signed-provider-certificates).
+
 ### SMTP and upgrade behavior
 
 Open **SMTP configuration** as an Admin to configure the sender, recipients, BCC, server, port, TLS mode, and optional credentials. Separate multiple recipient addresses with semicolons. Save changes before selecting **Send test notification**; background alerts use the saved settings on their next delivery.

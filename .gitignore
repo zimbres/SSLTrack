@@ -14,6 +14,7 @@ dev.db
 *.db-wal
 CLAUDE.md
 .claude
+oidc-ca.pem
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

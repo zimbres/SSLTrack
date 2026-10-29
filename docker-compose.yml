@@ -10,6 +10,7 @@ services:
       ASPNETCORE_ENVIRONMENT: ${SSLTRACK_ENVIRONMENT:-Production}
       Authentication__Bootstrap__Email: ${SSLTRACK_ADMIN_EMAIL:-}
       Authentication__Bootstrap__Password: ${SSLTRACK_ADMIN_PASSWORD:-}
+      # Authentication__Oidc__TrustedCaPath: /certs/oidc-ca.pem
     restart: unless-stopped
     volumes:
       - type: bind
@@ -18,6 +19,12 @@ services:
       - type: bind
         source: ./data
         target: /app/data
+      # - type: bind
+      #   source: ./oidc-ca.pem
+      #   target: /certs/oidc-ca.pem
+      #   read_only: true
+      #   bind:
+      #     create_host_path: false
 
   agent:
     build:

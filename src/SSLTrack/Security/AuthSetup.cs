@@ -67,8 +67,16 @@ public static partial class AuthSetup
         });
         if (configuration.GetValue<bool>("Authentication:Oidc:Enabled"))
         {
+            var trustedCaPath = configuration["Authentication:Oidc:TrustedCaPath"];
+            // Load at startup so a bad mount fails clearly instead of failing at sign-in.
+            var backchannelHandler = string.IsNullOrWhiteSpace(trustedCaPath)
+                ? null : OidcCertificateTrust.CreateHandler(trustedCaPath);
             auth.AddOpenIdConnect("oidc", o =>
             {
+                if (backchannelHandler is not null)
+                {
+                    o.BackchannelHttpHandler = backchannelHandler;
+                }
                 o.SignInScheme = Cookie;
                 o.Authority = configuration["Authentication:Oidc:Authority"];
                 o.ClientId = configuration["Authentication:Oidc:ClientId"];
