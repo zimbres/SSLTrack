@@ -89,6 +89,31 @@ public class AccountTests : IDisposable
         Assert.Equal("original@example.com", Assert.Single(await accounts.ListAsync()).Email);
     }
 
+    [Fact]
+    public async Task Deleting_user_revokes_session_and_releases_oidc_identity()
+    {
+        await accounts.SaveAsync(new UserEdit { Email = "oidc@example.com", DisplayName = "OIDC", AuthenticationType = "Oidc" }, null);
+        var user = (await accounts.ValidateOidcAsync("oidc@example.com", true, "issuer", "subject"))!;
+        var principal = AccountService.Principal(user);
+        await accounts.DeleteAsync(user.Id);
+        Assert.Null(await accounts.FindAsync(user.Id));
+        Assert.Null(await accounts.CurrentAsync(principal));
+        await accounts.SaveAsync(new UserEdit { Email = "oidc@example.com", DisplayName = "Replacement", AuthenticationType = "Oidc" }, null);
+        Assert.NotNull(await accounts.ValidateOidcAsync("oidc@example.com", true, "issuer", "subject"));
+    }
+
+    [Fact]
+    public async Task Last_enabled_admin_cannot_be_deleted_but_another_admin_can()
+    {
+        await accounts.BootstrapAsync("admin@example.com", "Long-Password-123!");
+        var admin = Assert.Single(await accounts.ListAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => accounts.DeleteAsync(admin.Id));
+        Assert.NotNull(await accounts.FindAsync(admin.Id));
+        await accounts.SaveAsync(new UserEdit { Email = "other@example.com", DisplayName = "Other", Role = "Admin", AuthenticationType = "Oidc" }, null);
+        await accounts.DeleteAsync(admin.Id);
+        Assert.Null(await accounts.FindAsync(admin.Id));
+    }
+
     public void Dispose()
     {
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();

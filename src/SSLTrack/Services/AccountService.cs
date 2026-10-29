@@ -108,6 +108,22 @@ public sealed class AccountService(IDbContextFactory<ApplicationDbContext> facto
         await transaction.CommitAsync();
     }
 
+    public async Task DeleteAsync(int id)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var user = await db.Users.SingleOrDefaultAsync(x => x.Id == id)
+            ?? throw new InvalidOperationException("User not found.");
+        if (user.Enabled && user.Role == "Admin" && !await db.Users.AnyAsync(x => x.Id != id && x.Enabled && x.Role == "Admin"))
+        {
+            throw new InvalidOperationException("Keep at least one enabled administrator.");
+        }
+
+        db.Users.Remove(user);
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+    }
+
     public async Task<AppUser?> ValidatePasswordAsync(string email, string password)
     {
         await using var db = await factory.CreateDbContextAsync();

@@ -55,6 +55,16 @@
             <MudItem xs="12"><MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@(edit.Id == 0 ? "Create user" : "Save user")</MudButton></MudItem>
         </MudGrid>
     </AccountForm>
+    @if (edit.Id != 0)
+    {
+        <MudDivider Class="my-8" />
+        <MudText Typo="Typo.h6" HtmlTag="h2" GutterBottom="true">Delete user</MudText>
+        <MudText Class="mb-4">Permanently delete @edit.Email and revoke its existing sessions. This also removes its OIDC identity link. This cannot be undone.</MudText>
+        <AccountForm @key="edit.Id" OnSubmit="DeleteAsync" SuccessMessage="User deleted.">
+            <MudCheckBox T="bool" @bind-Value="confirmDelete" Label="I confirm that I want to permanently delete this user" Color="Color.Error" />
+            <MudButton ButtonType="ButtonType.Submit" Disabled="@(!confirmDelete)" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete">Delete user</MudButton>
+        </AccountForm>
+    }
 </MudCard>
 @code
 {
@@ -70,6 +80,22 @@
         RequirePasswordChange = true
     };
     private string? password;
+    private bool confirmDelete;
+    private async Task DeleteAsync(AppUser current)
+    {
+        if (!confirmDelete)
+            throw new InvalidOperationException("Confirm deletion first.");
+        var deletedId = edit.Id;
+        await Accounts.DeleteAsync(deletedId);
+        if (deletedId == current.Id)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+        EditId = null;
+        await OnParametersSetAsync();
+        Navigation.NavigateTo(ShowDisabled ? "/users?showDisabled=true" : "/users", replace: true);
+    }
     private async Task SaveAsync(AppUser current)
     {
         await Accounts.SaveAsync(edit, password);
@@ -85,6 +111,7 @@
     }
     protected override async Task OnParametersSetAsync()
     {
+        confirmDelete = false;
         await Access.RequireAdminAsync();
         users = await Accounts.ListAsync();
         edit = users.FirstOrDefault(x => x.Id == EditId) ?? new UserEdit
