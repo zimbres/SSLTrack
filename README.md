@@ -67,9 +67,9 @@ docker pull zimbres/ssltrack
 
 ## Manual Installation
 
-A pre-compiled binary is available for Windows and Linux. Requires the ASP.NET Core Runtime 10.x.
+A pre-compiled binary is available for Windows and Linux. Requires the ASP.NET Core Runtime 11.x.
 
-- [Download .NET 10.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [Download .NET 11.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/11.0)
 - Download the latest release from the [Releases page](../../releases)
 
 ```bash
@@ -218,7 +218,7 @@ Or follow the [Hangfire production deployment guide](https://docs.hangfire.io/en
 
 ### Requirements
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [.NET 11 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/11.0)
 - Docker (optional, for Docker Compose)
 
 ### Run locally
