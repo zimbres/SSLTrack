@@ -68,7 +68,7 @@ The worker's existing Token/OAuth2 option remains for external deployments that 
 
 ## HTTPS and proxies
 
-Use HTTPS in production. Configure Kestrel TLS or terminate TLS at a trusted reverse proxy. Set `ReverseProxy__KnownProxies__0` (and subsequent indices) to exact proxy IP addresses when using a proxy; only these and framework loopback defaults are trusted for forwarded protocol/client-IP headers. Configure the proxy to overwrite forwarded headers and preserve the original host. Never add untrusted clients as proxies. Correct forwarding is required for secure cookies, rate limiting, HTTPS redirection, and OIDC callbacks.
+Use HTTPS in production. Configure Kestrel TLS or terminate TLS at a trusted reverse proxy. Set `ReverseProxy__KnownProxies__0` (and subsequent indices) to proxy IP addresses or CIDR subnets, such as `10.42.0.1`, `10.42.0.1/32`, or `10.42.0.0/16`. IPv4 prefix lengths `/0` through `/32` and IPv6 prefix lengths `/0` through `/128` are supported; CIDR addresses must be network base addresses (host bits zero). Entries can be mixed in the same array. Invalid entries fail application startup. Only these addresses/subnets and framework loopback defaults are trusted for forwarded protocol/client-IP headers. Trust a subnet only when every host in it is trusted to supply forwarded headers; `/0` trusts the entire address family. Configure the proxy to overwrite forwarded headers and preserve the original host. Never add untrusted clients as proxies. Correct forwarding is required for secure cookies, rate limiting, HTTPS redirection, and OIDC callbacks.
 
 ## SMTP
 

@@ -19,12 +19,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
     foreach (var proxy in builder.Configuration.GetSection("ReverseProxy:KnownProxies").Get<string[]>() ?? [])
     {
-        if (!IPAddress.TryParse(proxy, out var address))
+        if (IPAddress.TryParse(proxy, out var address))
         {
-            throw new InvalidOperationException("ReverseProxy:KnownProxies must contain IP addresses.");
+            options.KnownProxies.Add(address);
         }
-
-        options.KnownProxies.Add(address);
+        else if (System.Net.IPNetwork.TryParse(proxy, out var network))
+        {
+            options.KnownIPNetworks.Add(network);
+        }
+        else
+        {
+            throw new InvalidOperationException($"ReverseProxy:KnownProxies entry '{proxy}' must be an IP address or CIDR subnet.");
+        }
     }
 });
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();
